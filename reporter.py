@@ -29,10 +29,10 @@ def report_findings_cli(findings):
         console.print("[bold green]✅ No vulnerabilities found![/bold green]")
         return
 
-    table = Table(title="Security Vulnerabilities Found")
+    table = Table(title="RepoGuard Security Findings")
     table.add_column("File", style="cyan")
     table.add_column("Line", style="magenta")
-    table.add_column("Type", style="white")
+    table.add_column("Category", style="yellow")
     table.add_column("Vulnerability", style="bold white")
     table.add_column("Severity", style="bold")
 
@@ -42,13 +42,13 @@ def report_findings_cli(findings):
         table.add_row(
             f["file"],
             str(f["line"]),
-            f.get("risk_type", "CORE"),
+            f.get("owasp_category", "N/A"),
             f.get("vulnerability_name", "Unknown"),
             f"[{color}]{severity}[/{color}]"
         )
     
     console.print(table)
-    console.print("\n[bold]Detailed Findings:[/bold]\n")
+    console.print("\n[bold]Detailed Attack Vectors:[/bold]\n")
 
     for f in findings:
         severity = f.get("severity", "Low")
@@ -58,9 +58,12 @@ def report_findings_cli(findings):
         
         panel_content = f"""[bold]File:[/bold] {f['file']}
 [bold]Line:[/bold] {f['line']}
-[bold]Type:[/bold] {risk_type}
+[bold]OWASP Category:[/bold] {f.get('owasp_category', 'N/A')}
 [bold]Vulnerability:[/bold] {vuln_name}
 [bold]Severity:[/bold] [{color}]{severity}[/{color}]
+[bold]Attack Vector:[/bold]
+{f.get('attack_vector', 'N/A')}
+
 [bold]Description:[/bold] {f['description']}
 [bold]Remediation:[/bold] {f['remediation']}
 """
@@ -83,7 +86,7 @@ def report_findings_markdown(findings, output_file, ai_stack=None):
     """
     try:
         with open(output_file, 'w') as f:
-            f.write("# 🛡️ Security Vulnerability Scan Report\n\n")
+            f.write("# 🛡️ RepoGuard Security Report\n\n")
             
             if ai_stack:
                 stack_str = ", ".join(ai_stack)
@@ -94,22 +97,22 @@ def report_findings_markdown(findings, output_file, ai_stack=None):
                 f.write("> No security vulnerabilities were identified in the scanned codebase.\n\n")
             else:
                 f.write("## 📊 Summary\n\n")
-                f.write("| File | Line | Type | Vulnerability | Severity |\n")
+                f.write("| File | Line | OWASP | Vulnerability | Severity |\n")
                 f.write("| :--- | :--- | :--- | :--- | :--- |\n")
                 for fn in findings:
                     severity = fn.get("severity", "Low")
-                    f.write(f"| {fn['file']} | {fn['line']} | {fn.get('risk_type', 'CORE')} | {fn.get('vulnerability_name', 'Unknown')} | **{severity}** |\n")
+                    f.write(f"| {fn['file']} | {fn['line']} | {fn.get('owasp_category', 'N/A')} | {fn.get('vulnerability_name', 'Unknown')} | **{severity}** |\n")
                 
                 f.write("\n---\n\n")
-                f.write("## 🔍 Detailed Findings\n\n")
+                f.write("## 🔍 Detailed Attack Vectors\n\n")
                 for fn in findings:
                     severity = fn.get("severity", "Low")
-                    risk_type = fn.get("risk_type", "CORE")
                     f.write(f"### 📍 {fn.get('vulnerability_name', 'Vulnerability')} in `{fn['file']}`\n")
                     f.write(f"- **Line**: {fn['line']}\n")
-                    f.write(f"- **Type**: {risk_type}\n")
+                    f.write(f"- **OWASP Category**: {fn.get('owasp_category', 'N/A')}\n")
                     f.write(f"- **Severity**: {severity}\n\n")
                     f.write(f"> **Description**: {fn['description']}\n\n")
+                    f.write(f"#### 🏹 Attack Vector\n{fn.get('attack_vector', 'N/A')}\n\n")
                     f.write(f"#### 🛠 Remediation\n{fn['remediation']}\n\n")
                     f.write("---\n\n")
                     

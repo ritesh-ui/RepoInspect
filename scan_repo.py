@@ -93,26 +93,57 @@ def main():
     parser.add_argument("--json", help="Output findings to a JSON file", metavar="FILE")
     parser.add_argument("--markdown", help="Output findings to a Markdown file", metavar="FILE")
     parser.add_argument("--branch", help="Specific branch to scan (for remote repos)", metavar="BRANCH")
+    parser.add_argument("--fail-on", help="Fail with exit code 1 if vulnerabilities of this severity or higher are found", 
+                        choices=["Low", "Medium", "High", "Critical"], metavar="SEVERITY")
     args = parser.parse_args()
 
     repo_path = args.repo_path
     
+    # Graceful check for API Key
+    if not os.getenv("OPENAI_API_KEY"):
+        console.print("\n" + "="*60, style="yellow")
+        console.print("⚠️  WARNING: OPENAI_API_KEY NOT FOUND", style="bold yellow")
+        console.print("="*60, style="yellow")
+        console.print("RepoGuard's Deep AI Analysis is disabled.")
+        console.print("To enable full AST-based security auditing and attack vector")
+        console.print("analysis, please set your OPENAI_API_KEY in your environment")
+        console.print("or as a GitHub Secret.")
+        console.print("="*60 + "\n", style="yellow")
+        console.print("🚀 Running Fast Pattern-Only Scan...\n")
+
+    findings = []
     if is_git_url(repo_path):
-        # Use a temporary directory for remote clones
         with tempfile.TemporaryDirectory() as temp_dir:
             if clone_repo(repo_path, temp_dir, args.branch):
                 console.print(f"[bold blue]🚀 Starting scan on remote repo...[/bold blue]")
-                run_scan(temp_dir, args.json, args.markdown)
+                findings = run_scan(temp_dir, args.json, args.markdown)
             else:
-                return
+                sys.exit(1)
     else:
-        # Local path
         if not os.path.isdir(repo_path):
             console.print(f"[red]Error: {repo_path} is not a valid directory or Git URL.[/red]")
-            return
+            sys.exit(1)
         
         console.print(f"[bold blue]🚀 Starting scan on:[/bold blue] {repo_path}")
-        run_scan(repo_path, args.json, args.markdown)
+        findings = run_scan(repo_path, args.json, args.markdown)
+
+    # Exit code logic for CI/CD
+    if args.fail_on:
+        severity_map = {"Low": 1, "Medium": 2, "High": 3, "Critical": 4}
+        threshold = severity_map.get(args.fail_on, 0)
+        
+        highest_severity = 0
+        for f in findings:
+            sev_level = severity_map.get(f.get("severity"), 0)
+            if sev_level > highest_severity:
+                highest_severity = sev_level
+        
+        if highest_severity >= threshold:
+            console.print(f"\n[bold red]❌ Scan failed: Found vulnerabilities with severity {args.fail_on} or higher.[/bold red]")
+            sys.exit(1)
+        else:
+            console.print(f"\n[bold green]✅ Scan passed: No vulnerabilities found at or above {args.fail_on} severity.[/bold green]")
 
 if __name__ == "__main__":
+    import sys
     main()

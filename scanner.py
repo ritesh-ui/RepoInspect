@@ -1,15 +1,20 @@
 import re
+from ast_engine import analyze_python_taint, analyze_js_taint
 
 class DetectedSnippet:
-    def __init__(self, file_path, line_number, snippet, context_above, context_below, pattern_type):
+    def __init__(self, file_path, line_number, snippet, context_above, context_below, pattern_type, code_slice=None, tainted_vars=None):
         self.file_path = file_path
         self.line_number = line_number
         self.snippet = snippet
         self.context_above = context_above
         self.context_below = context_below
         self.pattern_type = pattern_type
+        self.code_slice = code_slice
+        self.tainted_vars = tainted_vars
 
     def get_full_context(self):
+        if self.code_slice:
+            return "\n".join(self.code_slice)
         return "\n".join(self.context_above + [self.snippet] + self.context_below)
 
 # Basic regex patterns for initial filtering
@@ -52,14 +57,48 @@ def detect_ai_stack(file_contents):
 
 def scan_file(file_path, lines, context_lines=10):
     """
-    Scans a list of lines for suspicious patterns and extracts context.
+    Scans a file using AST (Python/JS/TS) or regex (fallback).
     """
     detections = []
+    source_code = "\n".join(lines)
+    
+    # 1. AST Analysis (Python)
+    if file_path.endswith('.py'):
+        results = analyze_python_taint(file_path, source_code)
+        for r in results:
+            detections.append(DetectedSnippet(
+                file_path=file_path,
+                line_number=r.lineno,
+                snippet=lines[r.lineno-1].strip() if r.lineno <= len(lines) else "",
+                context_above=[], 
+                context_below=[],
+                pattern_type=r.sink_type,
+                code_slice=r.code_slice,
+                tainted_vars=r.tainted_vars
+            ))
+        if detections: return detections
+
+    # 2. AST Analysis (JS/TS/JSX/TSX)
+    if file_path.endswith(('.js', '.ts', '.jsx', '.tsx')):
+        results = analyze_js_taint(file_path, source_code)
+        for r in results:
+            detections.append(DetectedSnippet(
+                file_path=file_path,
+                line_number=r.lineno,
+                snippet=lines[r.lineno-1].strip() if r.lineno <= len(lines) else "",
+                context_above=[],
+                context_below=[],
+                pattern_type=r.sink_type,
+                code_slice=r.code_slice,
+                tainted_vars=r.tainted_vars
+            ))
+        if detections: return detections
+
+    # 3. Regex Fallback
     for i, line in enumerate(lines):
         clean_line = line.strip()
         for ptype, pattern in PATTERNS.items():
             if re.search(pattern, clean_line):
-                # Found a potential vulnerability
                 start_context = max(0, i - context_lines)
                 end_context = min(len(lines), i + context_lines + 1)
                 
@@ -74,6 +113,5 @@ def scan_file(file_path, lines, context_lines=10):
                     context_below=context_below,
                     pattern_type=ptype
                 ))
-                # Break to avoid multiple detections for the same line (prioritize first match)
                 break
     return detections

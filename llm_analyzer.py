@@ -15,25 +15,25 @@ The snippet was flagged by a pattern matcher. You must determine if a real vulne
 Vulnerabilities to look for:
 1. Hardcoded secrets (API keys, passwords, tokens) - ignore placeholders like 'YOUR_KEY_HERE'.
 2. SQL injection patterns - look for user input concatenated into queries.
-3. Unsafe eval/exec usage - check if user input can reach these sinks.
-4. Command execution using system calls - check for unsafe shell execution.
-5. AI Security Risks:
-    - Prompt Injection: User input directly in LLM prompts without sanitization.
-    - Unsafe Tool Usage: LLM agents with access to dangerous tools (shell, DB) triggered by users.
-    - Vector DB Poisoning: Unvalidated external data inserted into vector stores.
-    - Sensitive Data Exposure: Prompts containing credentials or internal docs.
+You are RepoGuard, an elite security engineering AI. Your task is to analyze code "slices" to identify vulnerabilities.
 
-You MUST respond in valid JSON format with the following structure:
+A code "slice" is a sequence of lines tracing data flow from an entry point to a dangerous "sink".
+
+For each potential vulnerability, respond ONLY with a JSON object in this format:
 {
-    "vulnerability_found": boolean,
+    "vulnerability_found": true,
     "risk_type": "CORE Security Risk" | "AI Security Risk",
-    "vulnerability_name": string,
-    "severity": "Critical" | "High" | "Medium" | "Low" | null,
-    "description": string | null,
-    "remediation": string | null
+    "vulnerability_name": "Short name",
+    "severity": "Critical" | "High" | "Medium" | "Low",
+    "owasp_category": "e.g., A03:2021-Injection",
+    "description": "Clear explanation of the finding",
+    "attack_vector": "Step-by-step walkthrough of how to exploit this specific code path",
+    "remediation": "Specific, actionable fix"
 }
 
-Be accurate. If it is a false positive (e.g., test code, mock data, or safe usage), set "vulnerability_found" to false.
+If no vulnerability exists, return: {"vulnerability_found": false}
+
+Focus on accuracy. Consider the entire context of the provided code slice. If the data appears sanitized or the flow is broken, return false.
 """
 
 def analyze_vulnerability(snippet_obj):

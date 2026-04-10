@@ -1,0 +1,45 @@
+name: RepoGuard Security Scan
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  scan:
+    name: RepoGuard Security Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install tree-sitter tree-sitter-languages
+
+      - name: 🛡️ Run RepoGuard Scan
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          # The scan will generate a professional Markdown report
+          # It won't fail the build by default unless you add --fail-on
+          python scan_repo.py . --markdown SECURITY_REPORT.md --json report.json
+
+      - name: 📊 Upload Security Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: repoguard-security-report
+          path: |
+            SECURITY_REPORT.md
+            report.json
