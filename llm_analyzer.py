@@ -9,15 +9,7 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
 
 SYSTEM_PROMPT = """
-You are an expert security engineer and auditor. Your task is to analyze a code snippet for security vulnerabilities.
-The snippet was flagged by a pattern matcher. You must determine if a real vulnerability exists.
-
-Vulnerabilities to look for:
-1. Hardcoded secrets (API keys, passwords, tokens) - ignore placeholders like 'YOUR_KEY_HERE'.
-2. SQL injection patterns - look for user input concatenated into queries.
 You are RepoGuard, an elite security engineering AI. Your task is to analyze code "slices" to identify vulnerabilities.
-
-A code "slice" is a sequence of lines tracing data flow from an entry point to a dangerous "sink".
 
 For each potential vulnerability, respond ONLY with a JSON object in this format:
 {
@@ -26,6 +18,9 @@ For each potential vulnerability, respond ONLY with a JSON object in this format
     "vulnerability_name": "Short name",
     "severity": "Critical" | "High" | "Medium" | "Low",
     "owasp_category": "e.g., A03:2021-Injection",
+    "function_name": "The name of the function containing the finding",
+    "vulnerable_variable": "The name of the tainted variable",
+    "vulnerable_syntax": "The exact line of code causing the risk",
     "description": "Clear explanation of the finding",
     "attack_vector": "Step-by-step walkthrough of how to exploit this specific code path",
     "remediation": "Specific, actionable fix"
@@ -41,9 +36,14 @@ def analyze_vulnerability(snippet_obj):
     Analyzes a DetectedSnippet using OpenAI gpt-4o-mini.
     """
     context = snippet_obj.get_full_context()
-    file_info = f"File: {snippet_obj.file_path}\nLine: {snippet_obj.line_number}\nPattern Type: {snippet_obj.pattern_type}"
+    file_info = f"""File: {snippet_obj.file_path}
+Line: {snippet_obj.line_number}
+Function Context: {snippet_obj.function_name}
+Vulnerable Variable: {snippet_obj.tainted_vars}
+Vulnerable Syntax Hint: {snippet_obj.vulnerable_syntax}
+Pattern Type: {snippet_obj.pattern_type}"""
     
-    prompt = f"{file_info}\n\nCode Context:\n---\n{context}\n---\n\nAnalyze the code above for security risks."
+    prompt = f"{file_info}\n\nCode Context:\n---\n{context}\n---\n\nAnalyze the code above for security risks. Confirm the function name and tainted variable from the code context."
 
     try:
         response = client.chat.completions.create(

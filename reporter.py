@@ -32,7 +32,7 @@ def report_findings_cli(findings):
     table = Table(title="RepoGuard Security Findings")
     table.add_column("File", style="cyan")
     table.add_column("Line", style="magenta")
-    table.add_column("Category", style="yellow")
+    table.add_column("Function", style="green")
     table.add_column("Vulnerability", style="bold white")
     table.add_column("Severity", style="bold")
 
@@ -42,25 +42,28 @@ def report_findings_cli(findings):
         table.add_row(
             f["file"],
             str(f["line"]),
-            f.get("owasp_category", "N/A"),
+            f.get("function_name", "global"),
             f.get("vulnerability_name", "Unknown"),
             f"[{color}]{severity}[/{color}]"
         )
     
     console.print(table)
-    console.print("\n[bold]Detailed Attack Vectors:[/bold]\n")
+    console.print("\n[bold]Detailed Forensic Analysis:[/bold]\n")
 
     for f in findings:
         severity = f.get("severity", "Low")
         color = SEVERITY_COLORS.get(severity, "white")
-        risk_type = f.get("risk_type", "CORE")
         vuln_name = f.get("vulnerability_name", "Unknown")
         
         panel_content = f"""[bold]File:[/bold] {f['file']}
 [bold]Line:[/bold] {f['line']}
-[bold]OWASP Category:[/bold] {f.get('owasp_category', 'N/A')}
+[bold]Function:[/bold] {f.get('function_name', 'global')}
+[bold]Vulnerable Variable:[/bold] {f.get('vulnerable_variable', 'Unknown')}
+[bold]Forensic Syntax:[/bold] [yellow]{f.get('vulnerable_syntax', 'N/A')}[/yellow]
 [bold]Vulnerability:[/bold] {vuln_name}
 [bold]Severity:[/bold] [{color}]{severity}[/{color}]
+[bold]OWASP Category:[/bold] {f.get('owasp_category', 'N/A')}
+
 [bold]Attack Vector:[/bold]
 {f.get('attack_vector', 'N/A')}
 
@@ -97,18 +100,21 @@ def report_findings_markdown(findings, output_file, ai_stack=None):
                 f.write("> No security vulnerabilities were identified in the scanned codebase.\n\n")
             else:
                 f.write("## 📊 Summary\n\n")
-                f.write("| File | Line | OWASP | Vulnerability | Severity |\n")
+                f.write("| File | Line | Function | Vulnerability | Severity |\n")
                 f.write("| :--- | :--- | :--- | :--- | :--- |\n")
                 for fn in findings:
                     severity = fn.get("severity", "Low")
-                    f.write(f"| {fn['file']} | {fn['line']} | {fn.get('owasp_category', 'N/A')} | {fn.get('vulnerability_name', 'Unknown')} | **{severity}** |\n")
+                    f.write(f"| {fn['file']} | {fn['line']} | `{fn.get('function_name', 'global')}` | {fn.get('vulnerability_name', 'Unknown')} | **{severity}** |\n")
                 
                 f.write("\n---\n\n")
-                f.write("## 🔍 Detailed Attack Vectors\n\n")
+                f.write("## 🔍 Detailed Forensic Analysis\n\n")
                 for fn in findings:
                     severity = fn.get("severity", "Low")
                     f.write(f"### 📍 {fn.get('vulnerability_name', 'Vulnerability')} in `{fn['file']}`\n")
                     f.write(f"- **Line**: {fn['line']}\n")
+                    f.write(f"- **Function**: `{fn.get('function_name', 'global')}`\n")
+                    f.write(f"- **Variable**: `{fn.get('vulnerable_variable', 'Unknown')}`\n")
+                    f.write(f"- **Syntax**: `{fn.get('vulnerable_syntax', 'N/A')}`\n")
                     f.write(f"- **OWASP Category**: {fn.get('owasp_category', 'N/A')}\n")
                     f.write(f"- **Severity**: {severity}\n\n")
                     f.write(f"> **Description**: {fn['description']}\n\n")
