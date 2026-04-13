@@ -1,0 +1,86 @@
+[
+    {
+        "vulnerability_found": true,
+        "risk_type": "CORE Security Risk",
+        "vulnerability_name": "Command Injection",
+        "severity": "Critical",
+        "owasp_category": "A01:2021-Broken Access Control",
+        "description": "The code directly concatenates user input into a shell command, which can lead to arbitrary command execution if the input is malicious.",
+        "attack_vector": "An attacker could provide a specially crafted input such as '; rm -rf /' as the user_input, leading to the execution of this command on the server.",
+        "remediation": "Use a secure method to execute commands, such as the subprocess.run() with a list argument to avoid shell interpretation. For example: subprocess.run(['echo', user_input], shell=False). Additionally, validate and sanitize user input.",
+        "file": "test_cases/vulnerable_data_flow.py",
+        "line": 19
+    },
+    {
+        "vulnerability_found": true,
+        "risk_type": "AI Security Risk",
+        "vulnerability_name": "Prompt Injection",
+        "severity": "High",
+        "owasp_category": "A01:2021-Broken Access Control",
+        "description": "The code allows user-controlled input (raw_prompt) to be concatenated into a prompt sent to an AI model, which can lead to the execution of unintended commands or prompts if not properly sanitized.",
+        "attack_vector": "An attacker can submit a `raw_prompt` with malicious inputs that could manipulate the behavior of the AI model. For example, they could input prompt instructions designed to retrieve sensitive data or perform actions the AI shouldn't do.",
+        "remediation": "Sanitize and validate the `raw_prompt` input to ensure that it does not contain any harmful instructions or unexpected content before concatenating it into the final prompt.",
+        "file": "test_cases/vulnerable_data_flow.py",
+        "line": 45
+    },
+    {
+        "vulnerability_found": true,
+        "risk_type": "CORE Security Risk",
+        "vulnerability_name": "SQL Injection",
+        "severity": "Critical",
+        "owasp_category": "A03:2021-Injection",
+        "description": "The GetUser function concatenates user input (userID) directly into a SQL query string, making it susceptible to SQL injection attacks.",
+        "attack_vector": "An attacker can provide a malicious userID such as '1; DROP TABLE users;' which would modify the SQL command executed, potentially allowing them to delete the users table.",
+        "remediation": "Use parameterized queries or prepared statements to safely incorporate user input into SQL queries, e.g., 'db.Query('SELECT name FROM users WHERE id = ?', userID)'",
+        "file": "test_cases/go_flow.go",
+        "line": 23
+    },
+    {
+        "vulnerability_found": true,
+        "risk_type": "CORE Security Risk",
+        "vulnerability_name": "Command Injection",
+        "severity": "Critical",
+        "owasp_category": "A01:2021-Broken Access Control",
+        "description": "The user input is directly concatenated into a shell command, allowing an attacker to execute arbitrary commands on the server.",
+        "attack_vector": "An attacker could provide user input such as '; rm -rf /' to delete all files on the server. The input is concatenated into the command string, resulting in the shell executing both the 'ls -la' and the malicious command.",
+        "remediation": "Validate and sanitize user input appropriately. Use a safer method for running commands, such as avoiding shell execution altogether or utilizing a library that restricts command input.",
+        "file": "test_cases/java_flow.java",
+        "line": 35
+    },
+    {
+        "vulnerability_found": true,
+        "risk_type": "CORE Security Risk",
+        "vulnerability_name": "SQL Injection",
+        "severity": "Critical",
+        "owasp_category": "A03:2021-Injection",
+        "description": "The code constructs an SQL query by directly concatenating user input (`id`) into the query string, making it vulnerable to SQL injection attacks.",
+        "attack_vector": "An attacker could manipulate the `id` parameter by injecting a malicious SQL code, e.g., setting `id` to '1 OR 1=1', which would modify the query to return all users instead of a single user.",
+        "remediation": "Use prepared statements or parameterized queries to safely include user input in SQL commands, e.g., use `PreparedStatement` instead of `Statement`.",
+        "file": "test_cases/java_flow.java",
+        "line": 57
+    },
+    {
+        "vulnerability_found": true,
+        "risk_type": "CORE Security Risk",
+        "vulnerability_name": "Command Injection",
+        "severity": "Critical",
+        "owasp_category": "A01:2021-Broken Access Control",
+        "description": "The user_input is directly concatenated into a shell command without any validation or sanitization, leading to command injection vulnerabilities.",
+        "attack_vector": "An attacker could supply malicious input, such as '; rm -rf /', which would be executed in the shell, potentially leading to unauthorized system access or data loss.",
+        "remediation": "Use a white-listing approach to validate user_input before concatenating it into the command, or use a library or method that handles shell commands safely, such as child_process.execFile.",
+        "file": "test_cases/vulnerable_flow.js",
+        "line": 21
+    },
+    {
+        "vulnerability_found": true,
+        "risk_type": "AI Security Risk",
+        "vulnerability_name": "Potential Exposure of Sensitive Information",
+        "severity": "Medium",
+        "owasp_category": "A03:2021-Injection",
+        "description": "The user input is directly inserted into the prompt string without proper sanitization, which may lead to unintended consequences or exposure of sensitive model behavior. If the input is malicious, it could exploit the AI model to produce harmful responses.",
+        "attack_vector": "An attacker could craft a user input that triggers the AI to generate a response containing sensitive information or commands. For example, if the input is something like 'Explain how to hack a system', the AI might output harmful content.",
+        "remediation": "Sanitize the user input before including it in the prompt to prevent injection of malicious commands. Consider using a predefined set of allowed inputs or using a more secure method to construct prompts.",
+        "file": "test_cases/vulnerable_flow.js",
+        "line": 63
+    }
+]

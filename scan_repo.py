@@ -50,7 +50,7 @@ def run_scan(repo_path, json_output=None, markdown_output=None, limit=None):
             detected_frameworks.update(stack)
             
             # Detect hotspots
-            file_hotspots = scan_file(file_path, lines)
+            file_hotspots = scan_file(file_path, lines, base_path=repo_path)
             hotspots.extend(file_hotspots)
     
     # Report AI Stack

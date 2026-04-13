@@ -67,8 +67,8 @@ def report_findings_cli(findings):
 [bold]Attack Vector:[/bold]
 {f.get('attack_vector', 'N/A')}
 
-[bold]Description:[/bold] {f['description']}
-[bold]Remediation:[/bold] {f['remediation']}
+[bold]Description:[/bold] {f.get('description', 'N/A')}
+[bold]Remediation:[/bold] {f.get('remediation', 'N/A')}
 """
         console.print(Panel(panel_content.strip(), expand=False))
 
@@ -117,9 +117,9 @@ def report_findings_markdown(findings, output_file, ai_stack=None):
                     f.write(f"- **Syntax**: `{fn.get('vulnerable_syntax', 'N/A')}`\n")
                     f.write(f"- **OWASP Category**: {fn.get('owasp_category', 'N/A')}\n")
                     f.write(f"- **Severity**: {severity}\n\n")
-                    f.write(f"> **Description**: {fn['description']}\n\n")
+                    f.write(f"> **Description**: {fn.get('description', 'N/A')}\n\n")
                     f.write(f"#### 🏹 Attack Vector\n{fn.get('attack_vector', 'N/A')}\n\n")
-                    f.write(f"#### 🛠 Remediation\n{fn['remediation']}\n\n")
+                    f.write(f"#### 🛠 Remediation\n{fn.get('remediation', 'N/A')}\n\n")
                     f.write("---\n\n")
                     
         console.print(f"\n[green]Markdown report saved to {output_file}[/green]")
