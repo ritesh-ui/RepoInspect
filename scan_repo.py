@@ -71,9 +71,34 @@ def run_scan(repo_path, json_output=None, markdown_output=None, limit=None):
         console.print(f"🔥 Found {total_hotspots} potential hotspots. Analyzing with AI...")
         analysis_targets = hotspots
 
-    with console.status("[bold yellow]AI is reasoning about vulnerabilities...[/bold yellow]") as status:
-        for hotspot in analysis_targets:
-            result = analyze_vulnerability(hotspot)
+    from concurrent.futures import ThreadPoolExecutor
+    from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn
+
+    all_findings = []
+    
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        BarColumn(),
+        TaskProgressColumn(),
+        console=console
+    ) as progress:
+        task = progress.add_task("[yellow]AI Reasoning about vulnerabilities...", total=len(analysis_targets))
+        
+        def process_hotspot(hotspot):
+            try:
+                result = analyze_vulnerability(hotspot)
+                progress.advance(task)
+                return result, hotspot
+            except Exception as e:
+                progress.advance(task)
+                return {"error": str(e)}, hotspot
+
+        # Use a reasonable concurrency limit to avoid massive rate limits or thread bloat
+        with ThreadPoolExecutor(max_workers=5) as executor:
+            future_results = list(executor.map(process_hotspot, analysis_targets))
+
+        for result, hotspot in future_results:
             if result.get("vulnerability_found"):
                 # Clean up file path if it's in a temp directory
                 result["file"] = hotspot.file_path

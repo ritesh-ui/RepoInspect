@@ -9,8 +9,15 @@ def restrict_path(base_path: str, target_path: str) -> str:
         raise ValueError("Paths outside the repository are restricted.")
     return target
 
+# Global cache to prevent redundant file reads across agent turns
+_FILE_CACHE = {}
+
 def read_file(filepath: str, base_path: str) -> str:
-    """Reads the contents of a file within the repository."""
+    """Reads the contents of a file within the repository, with memory caching."""
+    cache_key = (base_path, filepath)
+    if cache_key in _FILE_CACHE:
+        return _FILE_CACHE[cache_key]
+
     try:
         safe_path = restrict_path(base_path, filepath)
         if not os.path.exists(safe_path):
@@ -20,6 +27,7 @@ def read_file(filepath: str, base_path: str) -> str:
             
         # Add line numbers for context
         content = "".join([f"{i+1}: {line}" for i, line in enumerate(lines)])
+        _FILE_CACHE[cache_key] = content
         return content
     except Exception as e:
         return f"Error reading file: {e}"

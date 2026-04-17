@@ -20,18 +20,20 @@ class DetectedSnippet:
             return "\n".join(self.code_slice)
         return "\n".join(self.context_above + [self.snippet] + self.context_below)
 
-# Basic regex patterns for initial filtering
+# Patterns categorized for precision filtering
 PATTERNS = {
-    'Hardcoded Secret': r'(?i)(api[_-]?key|password|secret|token|apikey)\s*=\s*[\'"][a-zA-Z0-9_\-\.\~]{8,}[\'"]',
-    'SQL Injection Pattern': r'(?i)(SELECT|INSERT|UPDATE|DELETE).*\+.*|\b(execute|query)\(.*\+.*',
-    'Unsafe Eval/Exec': r'(?i)(eval|exec)\(',
-    'Command Execution': r'(?i)(os\.(system|popen)|subprocess\.(run|call|Popen|check_output|check_call)\(.*shell=True)',
-    
-    # AI/LLM Security Patterns
-    'Prompt Injection Risk': r'(?i)\.format\(|f[\'"].*\{[a-zA-Z_][a-zA-Z0-9_]*\}[\'"]|\{\{.*\}\}|\{[a-zA-Z_][a-zA-Z0-9_]*\}|template\.render\(',
-    'Unsafe Tool/Agent Usage': r'ShellTool|PythonREPL|exec\(',
-    'Sensitive Data in Prompt': r'(?i)(prompt|template).*(password|secret|key|token|internal)',
-    'Vector DB Risk': r'\.(add|upsert|insert)\(',
+    'GENERAL': {
+        'Hardcoded Secret': r'(?i)(api[_-]?key|password|secret|token|apikey)\s*=\s*[\'"][a-zA-Z0-9_\-\.\~]{8,}[\'"]',
+        'SQL Injection Pattern': r'(?i)(SELECT|INSERT|UPDATE|DELETE).*\+.*|\b(execute|query)\(.*\+.*',
+        'Unsafe Eval/Exec': r'(?i)(eval|exec)\(',
+        'Command Execution': r'(?i)(os\.(system|popen)|subprocess\.(run|call|Popen|check_output|check_call)\(.*shell=True)',
+    },
+    'AI_SPECIFIC': {
+        'Prompt Injection Risk': r'(?i)\.format\(|f[\'"].*\{[a-zA-Z_][a-zA-Z0-9_]*\}[\'"]|\{\{.*\}\}|\{[a-zA-Z_][a-zA-Z0-9_]*\}|template\.render\(',
+        'Unsafe Tool/Agent Usage': r'ShellTool|PythonREPL|exec\(',
+        'Sensitive Data in Prompt': r'(?i)(prompt|template).*(password|secret|key|token|internal)',
+        'Vector DB Risk': r'\.(add|upsert|insert)\(',
+    }
 }
 
 AI_FRAMEWORK_PATTERNS = {
@@ -58,29 +60,55 @@ def detect_ai_stack(file_contents):
             detected_frameworks.append(name)
     return detected_frameworks
 
-def get_logical_context(lines, target_idx, min_context=15):
-    """Dynamically extracts a logical code block based on indentation for better LLM context."""
+def get_logical_context(lines, target_idx, file_path, min_context=15):
+    """
+    Dynamically extracts a logical code block for LLM context.
+    Uses indentation-based detection for Python and brace-counting for Enterprise languages.
+    """
     if not lines:
         return [], []
     
-    target_line = lines[target_idx]
-    base_indent = len(target_line) - len(target_line.lstrip())
+    ext = file_path.lower().split('.')[-1]
+    is_brace_lang = ext in ('js', 'ts', 'jsx', 'tsx', 'java', 'go', 'cs', 'cpp', 'c')
     
-    start_idx = max(0, target_idx - min_context)
-    for i in range(target_idx - 1, max(-1, target_idx - min_context * 2), -1):
-        if lines[i].strip():
-            indent = len(lines[i]) - len(lines[i].lstrip())
-            if indent < base_indent and ("def " in lines[i] or "class " in lines[i] or "function " in lines[i]):
+    target_line = lines[target_idx]
+    
+    # Use simpler boundary hunting for brace languages as indentation can be inconsistent
+    if is_brace_lang:
+        start_idx = max(0, target_idx - min_context)
+        # Scan upwards for a likely function/class start: {
+        for i in range(target_idx, max(-1, target_idx - 30), -1):
+            if '{' in lines[i] and ('function' in lines[i] or '(' in lines[i]):
                 start_idx = i
                 break
-                
-    end_idx = min(len(lines), target_idx + min_context)
-    for i in range(target_idx + 1, min(len(lines), target_idx + min_context * 2)):
-        if lines[i].strip():
-            indent = len(lines[i]) - len(lines[i].lstrip())
-            if indent < base_indent and i > target_idx + 5:
-                end_idx = i
+        
+        end_idx = min(len(lines), target_idx + min_context)
+        # Scan downwards for a likely block end: }
+        open_braces = 0
+        for i in range(start_idx, min(len(lines), target_idx + 40)):
+            open_braces += lines[i].count('{')
+            open_braces -= lines[i].count('}')
+            if i > target_idx and open_braces <= 0:
+                end_idx = i + 1
                 break
+    else:
+        # Python-style indentation logic
+        base_indent = len(target_line) - len(target_line.lstrip())
+        start_idx = max(0, target_idx - min_context)
+        for i in range(target_idx - 1, max(-1, target_idx - min_context * 2), -1):
+            if lines[i].strip():
+                indent = len(lines[i]) - len(lines[i].lstrip())
+                if indent < base_indent and ("def " in lines[i] or "class " in lines[i]):
+                    start_idx = i
+                    break
+                    
+        end_idx = min(len(lines), target_idx + min_context)
+        for i in range(target_idx + 1, min(len(lines), target_idx + min_context * 2)):
+            if lines[i].strip():
+                indent = len(lines[i]) - len(lines[i].lstrip())
+                if indent < base_indent and i > target_idx + 5:
+                    end_idx = i
+                    break
                 
     context_above = [l.strip() for l in lines[start_idx:target_idx]]
     context_below = [l.strip() for l in lines[target_idx+1:end_idx]]
@@ -157,6 +185,10 @@ def scan_file(file_path, lines, base_path="", context_lines=20):
                 base_path=base_path
             ))
 
+    # Detect AI stack once for the whole file
+    ai_stack = detect_ai_stack(lines)
+    has_ai_stack = len(ai_stack) > 0
+
     # 3. Regex Fallback
     for i, line in enumerate(lines):
         clean_line = line.strip()
@@ -168,30 +200,34 @@ def scan_file(file_path, lines, base_path="", context_lines=20):
             continue
             
         # [Fix #2]: Strip comments to prevent regex from flagging documentation
-        # Remove anything after // or # if it's preceded by whitespace or at the start of a line
         clean_code = re.sub(r'(?:^\s*|\s+)(//|#).*$', '', clean_line).strip()
         
-        # Skip if the line is empty or purely a multiline comment start/end (basic heuristic)
         if not clean_code or clean_code.startswith('/*') or clean_code.startswith('*'):
             continue
             
-        for ptype, pattern in PATTERNS.items():
-            # If the file was processed by AST, do not let generic Regex second-guess its precision on core risks
-            if ast_processed and ptype in ('SQL Injection Pattern', 'Command Execution', 'Unsafe Eval/Exec'):
+        # Iterate through General and AI-specific patterns
+        for category, patterns in PATTERNS.items():
+            # Skip AI patterns if no AI stack is detected in the file
+            if category == 'AI_SPECIFIC' and not has_ai_stack:
                 continue
-                
-            if re.search(pattern, clean_code):
-                # [Fix #4]: Smart layout boundary extraction
-                context_above, context_below = get_logical_context(lines, i, context_lines)
-                
-                detections.append(DetectedSnippet(
-                    file_path=file_path,
-                    line_number=i + 1,
-                    snippet=clean_line,
-                    context_above=context_above,
-                    context_below=context_below,
-                    pattern_type=ptype,
-                    base_path=base_path
-                ))
-                break
+
+            for ptype, pattern in patterns.items():
+                # If the file was processed by AST, skip core risks already covered
+                if ast_processed and ptype in ('SQL Injection Pattern', 'Command Execution', 'Unsafe Eval/Exec'):
+                    continue
+                    
+                if re.search(pattern, clean_code):
+                    # Smart layout boundary extraction
+                    context_above, context_below = get_logical_context(lines, i, file_path, context_lines)
+                    
+                    detections.append(DetectedSnippet(
+                        file_path=file_path,
+                        line_number=i + 1,
+                        snippet=clean_line,
+                        context_above=context_above,
+                        context_below=context_below,
+                        pattern_type=ptype,
+                        base_path=base_path
+                    ))
+                    break
     return detections

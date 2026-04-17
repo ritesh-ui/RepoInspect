@@ -11,25 +11,36 @@ SANITIZER_FUNCTIONS = {
     'urlencode', 'quote', 'quote_plus', 'html_escape', 'markupsafe',
     # Python-specific
     'bleach_clean', 'escape_string', 'parameterize',
-    # Django
-    'mark_safe', 'escapejs', 'force_escape',
+    # Django — NOTE: mark_safe is explicitly EXCLUDED — it is a security bypass, not a sanitizer
+    'escapejs', 'force_escape',
     # SQL parameterization helpers
     'mogrify', 'literal', 'escape_sql',
-    # Validation functions that imply safe output
-    'validate', 'int', 'float', 'bool', 'str',
+    # Numeric casts break injection chains for numeric contexts only
+    # str/bool intentionally EXCLUDED — they are type-casts, not sanitizers
+    'int', 'float',
 }
 
-# Explicit Untrusted Sources
+# Explicit Untrusted Source identifiers used to assign High confidence
 UNTRUSTED_SOURCES = {
     # Python
-    'sys.argv', 'os.environ', 'request', 'request.args', 'request.form', 'request.values', 'request.json', 'flask.request',
-    'django.request', 'request.GET', 'request.POST', 'input',
+    'sys.argv', 'os.environ', 'request', 'request.args', 'request.form',
+    'request.values', 'request.json', 'flask.request', 'django.request',
+    'request.GET', 'request.POST', 'input',
     # JS/TS
-    'req.body', 'req.query', 'req.params', 'process.env', 'process.argv', 'request.body', 'request.query',
+    'req.body', 'req.query', 'req.params', 'process.env', 'process.argv',
+    'request.body', 'request.query',
     # Java
     'request.getParameter', 'System.getenv', 'request.getHeader',
     # Go
     'r.URL.Query', 'r.FormValue', 'os.Getenv', 'os.Args'
+}
+
+# Identifier fragments used by TreeSitter scanner to assign High confidence
+# (when any tainted variable name contains one of these keywords it's likely user input)
+UNTRUSTED_VAR_HINTS = {
+    'user', 'input', 'request', 'req', 'query', 'param', 'body', 'form',
+    'arg', 'argv', 'env', 'environ', 'data', 'payload', 'cmd', 'command',
+    'raw', 'unsafe', 'unvalidated', 'untrusted', 'external', 'remote',
 }
 
 # Qualified sink definitions: maps method names to the caller objects that make them dangerous
@@ -340,12 +351,12 @@ class TreeSitterScanner:
     def is_sink(self, func_name: str, caller_name: str = "") -> Optional[str]:
         categories = {
             'Command Injection': {
-                'funcs': ['exec', 'execSync', 'spawn', 'spawnSync', 'start', 'Command'],
-                'dangerous_callers': {'child_process', 'os', 'Runtime', 'ProcessBuilder', 'exec', 'syscall'}
+                'funcs': ['exec', 'execSync', 'spawn', 'spawnSync', 'start', 'Command', 'start', 'run'],
+                'dangerous_callers': {'child_process', 'os', 'Runtime', 'ProcessBuilder', 'exec', 'syscall', 'exec.Command'}
             },
             'SQL Injection': {
                 'funcs': ['query', 'execute', 'raw', 'executeQuery', 'executeUpdate', 'createNativeQuery', 'Query', 'Exec', 'QueryRow'],
-                'dangerous_callers': {'db', 'conn', 'connection', 'cursor', 'statement', 'stmt', 'session', 'tx', 'entityManager'}
+                'dangerous_callers': {'db', 'conn', 'connection', 'cursor', 'statement', 'stmt', 'session', 'tx', 'entityManager', 'sql', 'sqlx'}
             },
             'AI Security Risk': {
                 'funcs': ['create', 'run', 'invoke', 'predict', 'upsert'],
@@ -360,12 +371,21 @@ class TreeSitterScanner:
             if func_name in config['funcs']:
                 if config['dangerous_callers'] is None:
                     return cat
-                # If there's a caller, it must match dangerous caller heuristics
-                if caller_name and caller_name.lower() in config['dangerous_callers']:
-                    return cat
-                # If there's no caller, it might be a direct import (e.g. `const { exec } = require...`)
-                # which is risky, so we flag it in dynamically-typed analysis
-                if not caller_name:
+                
+                # For Enterprise languages (Java/Go), we require a caller to be present and match a heuristic
+                # This prevents flagging a local helper function named 'execute' or 'run'
+                if self.language in ('java', 'go'):
+                    if caller_name and any(c in caller_name.lower() for c in config['dangerous_callers']):
+                        return cat
+                    return None
+                
+                # For JavaScript, we are more aggressive due to dynamic naming/imports
+                if caller_name:
+                    if any(c in caller_name.lower() for c in config['dangerous_callers']):
+                        return cat
+                    return None
+                else:
+                    # Bare name call in JS (e.g. const { exec } = require...)
                     return cat
         return None
 
@@ -492,6 +512,15 @@ class TreeSitterScanner:
                                 syntax = self.source_lines[node.start_point[0]].strip()
                             except: pass
 
+                            # Assign confidence: High if any tainted var name hints at user input
+                            # This fixes the critical bug where all enterprise findings defaulted to Low
+                            var_names_lower = {v.lower() for v in tainted_found}
+                            confidence = "High" if any(
+                                hint in vname
+                                for hint in UNTRUSTED_VAR_HINTS
+                                for vname in var_names_lower
+                            ) else "Low"
+
                             self.findings.append(TaintFlow(
                                 sink_node=node,
                                 tainted_vars=list(set(tainted_found)),
@@ -499,7 +528,8 @@ class TreeSitterScanner:
                                 sink_type=risk_type,
                                 lineno=node.start_point[0] + 1,
                                 function_name=self.current_func,
-                                vulnerable_syntax=syntax
+                                vulnerable_syntax=syntax,
+                                confidence=confidence
                             ))
 
         # Recurse

@@ -1,7 +1,7 @@
 import os
 
 SUPPORTED_EXTENSIONS = {'.py', '.js', '.ts', '.jsx', '.tsx', '.java', '.go', '.yaml', '.txt'}
-IGNORE_DIRS = {'.git', 'node_modules', '__pycache__', 'venv', '.venv', 'env', '.env', 'dist', 'build', 'tests', 'docs', 'examples'}
+IGNORE_DIRS = {'.git', 'node_modules', '__pycache__', 'venv', '.venv', 'env', '.env', 'dist', 'build', 'docs'}
 
 def get_repo_files(repo_path):
     """
