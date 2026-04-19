@@ -312,6 +312,7 @@ class TreeSitterScanner:
         self.source_bytes = source_code.encode('utf-8')
         self.parser = get_parser(language)
         self.tainted_vars = set()
+        self.explicit_sources = set()
         self.findings: List[TaintFlow] = []
         self.current_func = "global"
         
@@ -398,6 +399,7 @@ class TreeSitterScanner:
             name_node = node.child_by_field_name('name')
             old_func = self.current_func
             old_tainted = self.tainted_vars.copy()
+            old_explicit = self.explicit_sources.copy()
             
             if name_node:
                 self.current_func = name_node.text.decode('utf-8')
@@ -408,7 +410,11 @@ class TreeSitterScanner:
                 while stack:
                     curr = stack.pop()
                     if curr.type == 'identifier':
-                        self.tainted_vars.add(curr.text.decode('utf-8'))
+                        var_name = curr.text.decode('utf-8')
+                        self.tainted_vars.add(var_name)
+                        # Heuristic: if param name hints at untrusted input, mark as explicit source
+                        if any(hint in var_name.lower() for hint in UNTRUSTED_VAR_HINTS):
+                            self.explicit_sources.add(var_name)
                     stack.extend(curr.children)
             
             # Recurse and then restore
@@ -417,6 +423,7 @@ class TreeSitterScanner:
             
             self.current_func = old_func
             self.tainted_vars = old_tainted
+            self.explicit_sources = old_explicit
             return
 
         # 2. Detect Taint Propagation (Assignments)
@@ -432,8 +439,16 @@ class TreeSitterScanner:
             
             if left and right:
                 is_tainted = False
+                is_explicit = False
                 is_sanitizer = False
                 
+                # Check RHS for explicit untrusted sources
+                rhs_text = right.text.decode('utf-8')
+                if any(src in rhs_text for src in UNTRUSTED_SOURCES) or \
+                   any(hint in rhs_text.lower() for hint in UNTRUSTED_VAR_HINTS):
+                    is_tainted = True
+                    is_explicit = True
+
                 # Check if RHS is a sanitizer call
                 if right.type in ('call_expression', 'method_invocation'):
                     fn = right.child_by_field_name('function') or right.child_by_field_name('name')
@@ -452,7 +467,9 @@ class TreeSitterScanner:
                     while stack:
                         curr = stack.pop()
                         if curr.type == 'identifier':
-                            self.tainted_vars.discard(curr.text.decode('utf-8'))
+                            var_name = curr.text.decode('utf-8')
+                            self.tainted_vars.discard(var_name)
+                            self.explicit_sources.discard(var_name)
                         stack.extend(curr.children)
                 else:
                     stack = [right]
@@ -460,6 +477,8 @@ class TreeSitterScanner:
                         curr = stack.pop()
                         if curr.type == 'identifier' and curr.text.decode('utf-8') in self.tainted_vars:
                             is_tainted = True
+                            if curr.text.decode('utf-8') in self.explicit_sources:
+                                is_explicit = True
                         if curr.type == 'call_expression':
                             fn = curr.child_by_field_name('function')
                             if fn and b'Sprintf' in fn.text:
@@ -471,7 +490,10 @@ class TreeSitterScanner:
                         while stack:
                             curr = stack.pop()
                             if curr.type == 'identifier':
-                                self.tainted_vars.add(curr.text.decode('utf-8'))
+                                var_name = curr.text.decode('utf-8')
+                                self.tainted_vars.add(var_name)
+                                if is_explicit:
+                                    self.explicit_sources.add(var_name)
                             stack.extend(curr.children)
 
         # 3. Detect Sinks (Calls & Constructor Creation)
@@ -513,13 +535,14 @@ class TreeSitterScanner:
                             except: pass
 
                             # Assign confidence: High if any tainted var name hints at user input
-                            # This fixes the critical bug where all enterprise findings defaulted to Low
+                            # OR if the variable was marked as an explicit source (e.g. process.env)
                             var_names_lower = {v.lower() for v in tainted_found}
-                            confidence = "High" if any(
+                            is_high_conf = any(v in self.explicit_sources for v in tainted_found) or any(
                                 hint in vname
                                 for hint in UNTRUSTED_VAR_HINTS
                                 for vname in var_names_lower
-                            ) else "Low"
+                            )
+                            confidence = "High" if is_high_conf else "Low"
 
                             self.findings.append(TaintFlow(
                                 sink_node=node,
