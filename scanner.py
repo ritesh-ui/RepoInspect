@@ -23,6 +23,7 @@ class DetectedSnippet:
 # Patterns categorized for precision filtering
 PATTERNS = {
     'GENERAL': {
+        # repoguard-ignore-next-line
         'Hardcoded Secret': r'(?i)(api[_-]?key|password|secret|token|apikey)\s*=\s*[\'"][a-zA-Z0-9_\-\.\~]{8,}[\'"]',
         'SQL Injection Pattern': r'(?i)(SELECT|INSERT|UPDATE|DELETE).*\+.*|\b(execute|query)\(.*\+.*',
         'Unsafe Eval/Exec': r'(?i)(eval|exec)\(',
@@ -30,7 +31,9 @@ PATTERNS = {
     },
     'AI_SPECIFIC': {
         'Prompt Injection Risk': r'(?i)\.format\(|f[\'"].*\{[a-zA-Z_][a-zA-Z0-9_]*\}[\'"]|\{\{.*\}\}|\{[a-zA-Z_][a-zA-Z0-9_]*\}|template\.render\(',
+        # repoguard-ignore-next-line
         'Unsafe Tool/Agent Usage': r'ShellTool|PythonREPL|exec\(',
+        # repoguard-ignore-next-line
         'Sensitive Data in Prompt': r'(?i)(prompt|template).*(password|secret|key|token|internal)',
         'Vector DB Risk': r'\.(add|upsert|insert)\(',
     }
