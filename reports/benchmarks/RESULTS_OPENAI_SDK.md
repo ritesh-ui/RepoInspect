@@ -1,224 +1,377 @@
 # 🛡️ RepoGuard Security Report
 
-### 🤖 AI Stack Detected: `OpenAI`
+### 🤖 AI Stack Detected: `Anthropic, OpenAI`
 
 ## 📊 Summary
 
 | File | Line | Function | Vulnerability | Severity |
 | :--- | :--- | :--- | :--- | :--- |
-| /var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmpqhdw5bnf/.agents/skills/runtime-behavior-probe/templates/python_probe.py | 20 | `global` | Unsafe Tool Usage | **High** |
-| /var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmpqhdw5bnf/.agents/skills/runtime-behavior-probe/templates/python_probe.py | 38 | `_git_value` | Command Injection | **High** |
-| /var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmpqhdw5bnf/.codex/hooks/stop_repo_tidy.py | 71 | `run_command` | Command Injection | **High** |
-| /var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmpqhdw5bnf/.github/scripts/select-release-milestone.py | 31 | `latest_tag_version` | Command Injection | **High** |
-| /var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmpqhdw5bnf/.github/scripts/select-release-milestone.py | 74 | `fetch_open_milestones` | Prompt Injection Risk | **High** |
-| /var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmpqhdw5bnf/.github/scripts/select-release-milestone.py | 86 | `select_milestone` | Prompt Injection Risk | **High** |
-| /var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmpqhdw5bnf/.github/scripts/pr_labels.py | 149 | `read_file_at` | Command Injection | **Critical** |
-| /var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmpqhdw5bnf/.github/scripts/pr_labels.py | 435 | `fetch_existing_labels` | Command Injection | **Critical** |
-| /var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmpqhdw5bnf/.github/scripts/pr_labels.py | 435 | `main` | Command Injection | **Critical** |
-| /var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmpqhdw5bnf/src/agents/run.py | 1644 | `run_sync` | Command Injection | **High** |
-| /var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmpqhdw5bnf/src/agents/run_state.py | 82 | `global` | Unsafe Tool Usage | **High** |
+| /var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmp18debp_s/tests/test_openai_responses_converter.py | 535 | `test_convert_tools_shell_container_auto_environment` | Potential Shell Command Injection | **Critical** |
+| /var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmp18debp_s/tests/test_agent_runner.py | 3505 | `test_default_multi_turn_drops_orphan_hosted_shell_calls` | Unsafe Tool Usage | **Critical** |
+| /var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmp18debp_s/tests/test_agent_runner.py | 3615 | `test_default_multi_turn_streamed_drops_orphan_hosted_shell_calls` | Unsafe Tool Usage | **Critical** |
+| /var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmp18debp_s/tests/sandbox/test_runtime.py | 218 | `_exec_internal` | Subprocess Execution without Sanitization | **Critical** |
+| /var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmp18debp_s/src/agents/extensions/experimental/codex/exec.py | 119 | `global` | Command Injection Risk | **Critical** |
+| /var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmp18debp_s/src/agents/extensions/sandbox/daytona/sandbox.py | 865 | `_run_persist_workspace_command` | Unsanitized Command Execution | **High** |
+| /var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmp18debp_s/src/agents/extensions/sandbox/daytona/sandbox.py | 923 | `Unknown` | Unsanitized Command Execution | **High** |
+| /var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmp18debp_s/src/agents/extensions/sandbox/daytona/sandbox.py | 996 | `Unknown` | Unsanitized Command Execution | **High** |
+| /var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmp18debp_s/src/agents/extensions/sandbox/daytona/sandbox.py | 1013 | `Unknown` | Unsanitized Command Execution | **High** |
+| /var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmp18debp_s/src/agents/extensions/sandbox/modal/sandbox.py | 1020 | `read` | Command Injection | **High** |
+| /var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmp18debp_s/src/agents/extensions/sandbox/modal/sandbox.py | 1163 | `unknown` | Command Injection | **High** |
+| /var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmp18debp_s/src/agents/extensions/sandbox/modal/sandbox.py | 1167 | `unknown` | Command Injection | **High** |
+| /var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmp18debp_s/src/agents/extensions/sandbox/modal/sandbox.py | 1249 | `unknown` | Command Injection | **High** |
+| /var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmp18debp_s/src/agents/extensions/sandbox/modal/sandbox.py | 1309 | `unknown` | Command Injection | **High** |
+| /var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmp18debp_s/src/agents/sandbox/entries/mounts/patterns.py | 423 | `exec` | Command Injection | **High** |
+| /var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmp18debp_s/src/agents/sandbox/entries/mounts/patterns.py | 676 | `exec` | Command Injection | **High** |
+| /var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmp18debp_s/src/agents/sandbox/entries/mounts/patterns.py | 705 | `exec` | Command Injection | **High** |
+| /var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmp18debp_s/src/agents/sandbox/entries/mounts/patterns.py | 773 | `exec` | Command Injection | **High** |
 
 ---
 
 ## 🔍 Detailed Forensic Analysis
 
-### 📍 Unsafe Tool Usage in `/var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmpqhdw5bnf/.agents/skills/runtime-behavior-probe/templates/python_probe.py`
-- **Line**: 20
+### 📍 Potential Shell Command Injection in `/var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmp18debp_s/tests/test_openai_responses_converter.py`
+- **Line**: 535
+- **Function**: `test_convert_tools_shell_container_auto_environment`
+- **Variable**: `shell_tool`
+- **Syntax**: `shell_tool = ShellTool(...)`
+- **OWASP Category**: LLM08:2023-Excessive Agency
+- **CWE Indicator**: CWE-250
+- **Severity**: Critical
+
+> **Description**: The `ShellTool` could potentially execute shell commands based on the input, which poses a risk of shell command injection if the inputs are not sanitized.
+
+#### 🏹 Attack Vector
+An attacker could manipulate the shell environment or the commands executed within it to perform arbitrary code execution. If an injection occurs via user-controlled data leading to a shell command execution, it may lead to unauthorized actions.
+
+#### 🛠 Remediation
+Ensure proper sanitization of inputs used in `ShellTool`. Validate and restrict the environment parameters.
+
+---
+
+### 📍 Unsafe Tool Usage in `/var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmp18debp_s/tests/test_agent_runner.py`
+- **Line**: 3505
+- **Function**: `test_default_multi_turn_drops_orphan_hosted_shell_calls`
+- **Variable**: `commands`
+- **Syntax**: `commands=["echo hi"]`
+- **OWASP Category**: LLM08:2023-Excessive Agency
+- **CWE Indicator**: CWE-250
+- **Severity**: Critical
+
+> **Description**: The command argument provided to the ShellTool could be subject to user manipulation.
+
+#### 🏹 Attack Vector
+If 'commands' could be influenced by external input, it may lead to code injection or arbitrary command execution.
+
+#### 🛠 Remediation
+Ensure that the input for commands is sanitized and validated to prevent injecting malicious commands.
+
+---
+
+### 📍 Unsafe Tool Usage in `/var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmp18debp_s/tests/test_agent_runner.py`
+- **Line**: 3615
+- **Function**: `test_default_multi_turn_streamed_drops_orphan_hosted_shell_calls`
+- **Variable**: `commands`
+- **Syntax**: `commands=["echo hi"]`
+- **OWASP Category**: LLM08:2023-Excessive Agency
+- **CWE Indicator**: CWE-250
+- **Severity**: Critical
+
+> **Description**: The command argument provided to the ShellTool could be subject to user manipulation.
+
+#### 🏹 Attack Vector
+If 'commands' could be influenced by external input, it may lead to code injection or arbitrary command execution.
+
+#### 🛠 Remediation
+Ensure that the input for commands is sanitized and validated to prevent injecting malicious commands.
+
+---
+
+### 📍 Subprocess Execution without Sanitization in `/var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmp18debp_s/tests/sandbox/test_runtime.py`
+- **Line**: 218
+- **Function**: `_exec_internal`
+- **Variable**: `command`
+- **Syntax**: `process = await asyncio.create_subprocess_exec(*(str(part) for part in command), stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)`
+- **OWASP Category**: LLM08:2023-Excessive Agency
+- **CWE Indicator**: CWE-250
+- **Severity**: Critical
+
+> **Description**: The _exec_internal function executes commands using asyncio.create_subprocess_exec without any sanitization, allowing potentially harmful commands to be executed.
+
+#### 🏹 Attack Vector
+An attacker can manipulate the `command` variable to execute arbitrary commands in the subprocess, which can lead to unauthorized access or manipulation of the system.
+
+#### 🛠 Remediation
+Sanitize the `command` input to restrict allowed commands and prevent execution of potentially harmful or unauthorized commands.
+
+---
+
+### 📍 Command Injection Risk in `/var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmp18debp_s/src/agents/extensions/experimental/codex/exec.py`
+- **Line**: 119
 - **Function**: `global`
-- **Variable**: `PROBE_OUTPUT_DIR`
-- **Syntax**: `PROBE_OUTPUT_DIR=/tmp/probe-run uv run python /tmp/probe.py`
-- **OWASP Category**: A01:2021-Broken Access Control
-- **Severity**: High
-
-> **Description**: The command execution in the shell relies on an environment variable which can be manipulated. This allows an attacker to execute arbitrary commands if they can influence the environment.
-
-#### 🏹 Attack Vector
-1. An attacker sets an environment variable to manipulate the output directory. 2. They modify the command to include malicious payloads or command executions. 3. When executed, it runs the attacker's code instead, leading to potential data disclosure or system compromise.
-
-#### 🛠 Remediation
-Sanitize and validate all inputs used in commands, and use a safe API for subprocess execution that does not rely on shell commands.
-
----
-
-### 📍 Command Injection in `/var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmpqhdw5bnf/.agents/skills/runtime-behavior-probe/templates/python_probe.py`
-- **Line**: 38
-- **Function**: `_git_value`
-- **Variable**: `args`
-- **Syntax**: `result = subprocess.run(["git", *args], check=False, capture_output=True, text=True)`
-- **OWASP Category**: A01:2021-Broken Access Control
-- **Severity**: High
-
-> **Description**: The function '_git_value' takes arbitrary command line arguments and passes them directly to a subprocess without proper validation or sanitization, which can lead to command injection vulnerabilities.
-
-#### 🏹 Attack Vector
-An attacker can pass malicious input as an argument to '_git_value', for example, by calling '_git_value('branch_name; rm -rf /')', executing unintended commands on the server.
-
-#### 🛠 Remediation
-Implement strict validation of the input arguments and avoid using arbitrary inputs directly in subprocess commands. Use a whitelist approach for valid command arguments.
-
----
-
-### 📍 Command Injection in `/var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmpqhdw5bnf/.codex/hooks/stop_repo_tidy.py`
-- **Line**: 71
-- **Function**: `run_command`
-- **Variable**: `cwd`
-- **Syntax**: `return subprocess.run(`
-- **OWASP Category**: A01:2021-Broken Access Control
-- **Severity**: High
-
-> **Description**: The function accepts a 'cwd' argument, which can be controlled by an attacker, leading to potential command injection vulnerabilities when passed to subprocess.run() without proper validation or sanitization.
-
-#### 🏹 Attack Vector
-1. An attacker can craft a malicious input for the 'cwd' parameter; for example, they could enter a directory path that includes command characters. 2. When this input is used in subprocess.run(), it can lead to arbitrary command execution. 3. The attacker executes their command in the context of the application, potentially compromising the system.
-
-#### 🛠 Remediation
-Validate and sanitize the 'cwd' input to ensure it only contains safe directory names; restrict it to a predefined set of allowed paths.
-
----
-
-### 📍 Command Injection in `/var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmpqhdw5bnf/.github/scripts/select-release-milestone.py`
-- **Line**: 31
-- **Function**: `latest_tag_version`
-- **Variable**: `output`
-- **Syntax**: `output = subprocess.check_output(["git", "tag", "--list", "v*"], text=True)`
-- **OWASP Category**: A01:2021-Broken Access Control
-- **Severity**: High
-
-> **Description**: The command execution using subprocess with unsanitized output could allow for command injection if any part of the command is influenced by user-controlled input.
-
-#### 🏹 Attack Vector
-1. If an attacker can influence the arguments of the 'git tag' command (e.g., via environment variables, code injection in a prior function, or similar), they could execute arbitrary commands. 2. By crafting specific tag names that include shell metacharacters, they could manipulate the execution to run unauthorized commands.
-
-#### 🛠 Remediation
-Sanitize all inputs that reach the command parameters to ensure they only allow safe values, or use a safer alternative to subprocess that does not involve shell metacharacters.
-
----
-
-### 📍 Prompt Injection Risk in `/var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmpqhdw5bnf/.github/scripts/select-release-milestone.py`
-- **Line**: 74
-- **Function**: `fetch_open_milestones`
-- **Variable**: `token`
-- **Syntax**: `Authorization: f"Bearer {token}"`
-- **OWASP Category**: A01:2021-Broken Access Control
-- **Severity**: High
-
-> **Description**: The 'token' variable is used directly in the Authorization header without proper validation or sanitization, presenting a risk of prompt injection attacks if the token is exposed or manipulated.
-
-#### 🏹 Attack Vector
-An attacker could manipulate the 'token' variable by injecting a specially crafted token value that could, for instance, bypass authorization checks in a broader context. If used in a command or in contexts where it could affect access rights, this could allow unwanted access to protected resources.
-
-#### 🛠 Remediation
-Implement strict validation on the 'token' variable to ensure it only contains expected values or patterns before including it in the Authorization header. Additionally, consider implementing scopes for the token to limit permissions further.
-
----
-
-### 📍 Prompt Injection Risk in `/var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmpqhdw5bnf/.github/scripts/select-release-milestone.py`
-- **Line**: 86
-- **Function**: `select_milestone`
-- **Variable**: `milestone.get('title')`
-- **Syntax**: `parsed_title = parse_milestone_title(milestone.get('title'))`
-- **OWASP Category**: A01:2021-Broken Access Control
-- **Severity**: High
-
-> **Description**: The title of each milestone is passed to the function 'parse_milestone_title', which may be vulnerable to prompt injection attacks if the function does not sanitize its input properly. Attackers could manipulate the title to execute unintended commands or scripts if exploited.
-
-#### 🏹 Attack Vector
-An attacker can create or modify a milestone's title to include malicious code or commands. If 'parse_milestone_title' does not appropriately validate or sanitize the input, it can lead to unintended execution flows or exposures.
-
-#### 🛠 Remediation
-Implement input validation and sanitization within the 'parse_milestone_title' function to ensure that milestone titles do not allow for injection of unexpected or harmful content.
-
----
-
-### 📍 Command Injection in `/var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmpqhdw5bnf/.github/scripts/pr_labels.py`
-- **Line**: 149
-- **Function**: `read_file_at`
-- **Variable**: `commit`
-- **Syntax**: `return subprocess.check_output(["git", "show", f"{commit}:{path}"], text=True)`
-- **OWASP Category**: A01:2021-Broken Access Control
+- **Variable**: `args.approval_policy, args.thread_id, args.images`
+- **Syntax**: `command_args.extend(["--config", f'approval_policy="{args.approval_policy}"'])
+command_args.extend(["resume", args.thread_id])
+command_args.extend(["--image", image])`
+- **OWASP Category**: LLM08:2023-Excessive Agency
+- **CWE Indicator**: CWE-250
 - **Severity**: Critical
 
-> **Description**: The 'commit' variable directly influences the command executed by the subprocess, allowing an attacker to inject arbitrary commands if they control the input.
+> **Description**: The approval policy, thread ID, and image values are taken directly from user input (args), and there is no evidence of sanitization before being used in constructing command_args to execute an external command.
 
 #### 🏹 Attack Vector
-An attacker can manipulate the 'commit' parameter by providing a specially crafted string such as 'master; rm -rf /' which will execute the 'rm -rf /' command due to shell command injection, potentially causing catastrophic damage.
+1. An attacker can provide malicious input through the approval_policy, thread_id, or images parameters.
+2. If these inputs are unvalidated, they can modify the command executed.
+3. This can lead to command injection vulnerabilities, potentially allowing arbitrary command execution.
 
 #### 🛠 Remediation
-Sanitize the 'commit' input by allowing only specific, expected formats, or use a safer method of executing commands, such as the subprocess module's arguments as a list to avoid shell interpretation.
+Implement input validation and sanitization for args.approval_policy, args.thread_id, and args.images to prevent command injection. Consider using libraries designed for command building that properly escape user input.
 
 ---
 
-### 📍 Command Injection in `/var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmpqhdw5bnf/.github/scripts/pr_labels.py`
-- **Line**: 435
-- **Function**: `fetch_existing_labels`
-- **Variable**: `pr_number`
-- **Syntax**: `result = subprocess.check_output(["gh", "pr", "view", pr_number, "--json", "labels", "--jq", ".labels[].name"]`
-- **OWASP Category**: A01:2021-Broken Access Control
-- **Severity**: Critical
+### 📍 Unsanitized Command Execution in `/var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmp18debp_s/src/agents/extensions/sandbox/daytona/sandbox.py`
+- **Line**: 865
+- **Function**: `_run_persist_workspace_command`
+- **Variable**: `tar_cmd`
+- **Syntax**: `result = await self._sandbox.process.exec(tar_cmd, env=envs or None)`
+- **OWASP Category**: N/A
+- **CWE Indicator**: N/A
+- **Severity**: High
 
-> **Description**: The 'pr_number' variable is directly used in a shell command without validation or sanitization, allowing an attacker to inject malicious commands.
+> **Description**: The 'tar_cmd' variable is potentially controlled by user input, leading to command injection risks.
 
 #### 🏹 Attack Vector
-1. An attacker crafts a pull request number '1; rm -rf /' which is passed to the subprocess call. 2. The subprocess interprets the injected command, executing it. 3. This can lead to arbitrary command execution on the server.
+An attacker can manipulate 'tar_cmd' to execute arbitrary commands in the sandbox environment.
 
 #### 🛠 Remediation
-Sanitize input for 'pr_number' to ensure it contains only expected characters (e.g., digits). Consider using a whitelisting approach or validate against a known list of valid pull request numbers before using it in subprocess calls.
+Sanitize 'tar_cmd' to ensure only safe commands are allowed, or consider using a safer command execution method.
 
 ---
 
-### 📍 Command Injection in `/var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmpqhdw5bnf/.github/scripts/pr_labels.py`
-- **Line**: 435
-- **Function**: `main`
+### 📍 Unsanitized Command Execution in `/var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmp18debp_s/src/agents/extensions/sandbox/daytona/sandbox.py`
+- **Line**: 923
+- **Function**: `Unknown`
+- **Variable**: `tar_path`
+- **Syntax**: `await self._sandbox.process.exec(f"rm -f -- {shlex.quote(tar_path)}");`
+- **OWASP Category**: N/A
+- **CWE Indicator**: N/A
+- **Severity**: High
+
+> **Description**: 'tar_path' is being directly used in a command without proper validation, creating a command injection risk.
+
+#### 🏹 Attack Vector
+If an attacker controls 'tar_path', they can execute unintended commands.
+
+#### 🛠 Remediation
+Strictly validate 'tar_path' and use safer handling methods for file paths.
+
+---
+
+### 📍 Unsanitized Command Execution in `/var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmp18debp_s/src/agents/extensions/sandbox/daytona/sandbox.py`
+- **Line**: 996
+- **Function**: `Unknown`
+- **Variable**: `tar_path`
+- **Syntax**: `result = await self._sandbox.process.exec(f"tar -C {shlex.quote(root)} -xf {shlex.quote(tar_path)}", env=envs or None)`
+- **OWASP Category**: N/A
+- **CWE Indicator**: N/A
+- **Severity**: High
+
+> **Description**: 'tar_path' is directly incorporated in the command execution without adequate sanitization, posing a risk.
+
+#### 🏹 Attack Vector
+An attacker could manipulate 'tar_path' to run arbitrary shell commands.
+
+#### 🛠 Remediation
+Implement validation for 'tar_path' to restrict it to safe values.
+
+---
+
+### 📍 Unsanitized Command Execution in `/var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmp18debp_s/src/agents/extensions/sandbox/daytona/sandbox.py`
+- **Line**: 1013
+- **Function**: `Unknown`
+- **Variable**: `tar_path`
+- **Syntax**: `await self._sandbox.process.exec(f"rm -f -- {shlex.quote(tar_path)}", env=envs or None)`
+- **OWASP Category**: N/A
+- **CWE Indicator**: N/A
+- **Severity**: High
+
+> **Description**: The use of 'tar_path' in a command execution context without sanitization allows for command injection.
+
+#### 🏹 Attack Vector
+An attacker can control 'tar_path' to execute arbitrary commands on the system.
+
+#### 🛠 Remediation
+Sanitize or validate 'tar_path' before incorporating it into the command execution to mitigate risk.
+
+---
+
+### 📍 Command Injection in `/var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmp18debp_s/src/agents/extensions/sandbox/modal/sandbox.py`
+- **Line**: 1020
+- **Function**: `read`
 - **Variable**: `cmd`
-- **Syntax**: `subprocess.check_call(cmd)`
-- **OWASP Category**: A01:2021-Broken Access Control
-- **Severity**: Critical
+- **Syntax**: `out = await self.exec(*cmd, shell=False)`
+- **OWASP Category**: N/A
+- **CWE Indicator**: N/A
+- **Severity**: High
 
-> **Description**: The `cmd` variable is built dynamically with user input from `to_add` and `to_remove`, which may allow an attacker to inject malicious commands.
+> **Description**: The cmd variable can be modified externally, leading to potential command injection.
 
 #### 🏹 Attack Vector
-1. An attacker provides crafted input for `to_add` or `to_remove`, such as 'label1; rm -rf /' that appends a malicious command to the `cmd` list. 2. The command is passed to `subprocess.check_call`, executing the malicious command due to the unsanitized input. 3. The attacker gains control, potentially executing harmful commands on the server.
+An attacker could manipulate the user input or other state in a way that changes the cmd list, allowing arbitrary shell commands to be executed.
 
 #### 🛠 Remediation
-Sanitize user inputs for `to_add` and `to_remove` to ensure they only contain allowed characters (e.g., alphabets, numbers, and a limited set of special characters). Consider using a safe method to construct the command, avoiding passing user input directly to subprocess calls.
+Always validate and sanitize inputs before executing shell commands. Utilize explicit whitelisting for allowed commands.
 
 ---
 
-### 📍 Command Injection in `/var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmpqhdw5bnf/src/agents/run.py`
-- **Line**: 1644
-- **Function**: `run_sync`
-- **Variable**: `starting_agent`
-- **Syntax**: `self.run(starting_agent)`
-- **OWASP Category**: A01:2021-Broken Access Control
+### 📍 Command Injection in `/var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmp18debp_s/src/agents/extensions/sandbox/modal/sandbox.py`
+- **Line**: 1163
+- **Function**: `unknown`
+- **Variable**: `cmd`
+- **Syntax**: `out = await self.exec('sh', '-lc', cmd, shell=False)`
+- **OWASP Category**: N/A
+- **CWE Indicator**: N/A
 - **Severity**: High
 
-> **Description**: The 'starting_agent' variable is being passed directly to the 'self.run' method, which could potentially execute arbitrary commands if 'starting_agent' contains malicious input.
+> **Description**: The cmd variable is built from user-controlled data, risking command injection.
 
 #### 🏹 Attack Vector
-1. An attacker can manipulate the input to 'starting_agent' to include shell commands. 2. When 'self.run' is called, it executes this input as a command. 3. If 'starting_agent' is not properly sanitized, the attacker can execute unintended commands on the server.
+An attacker could input paths in a way that modifies the command being executed, allowing arbitrary code execution.
 
 #### 🛠 Remediation
-Implement input validation and sanitization for 'starting_agent' to ensure it only contains expected values before passing it to 'self.run'. Consider using safer execution methods that do not invoke shell directly.
+Ensure that the content of cmd is strictly controlled and validated before execution.
 
 ---
 
-### 📍 Unsafe Tool Usage in `/var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmpqhdw5bnf/src/agents/run_state.py`
-- **Line**: 82
-- **Function**: `global`
-- **Variable**: `None`
-- **Syntax**: `coerce_tool_search_output_raw_item,`
-- **OWASP Category**: A05:2021-Broken Access Control
+### 📍 Command Injection in `/var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmp18debp_s/src/agents/extensions/sandbox/modal/sandbox.py`
+- **Line**: 1167
+- **Function**: `unknown`
+- **Variable**: `rm_cmd`
+- **Syntax**: `rm_out = await self.exec(*rm_cmd, shell=False)`
+- **OWASP Category**: N/A
+- **CWE Indicator**: N/A
 - **Severity**: High
 
-> **Description**: The code includes a set of tools that may not have proper access control mechanisms to prevent unauthorized actions or commands, potentially leading to exploitation.
+> **Description**: The rm_cmd variable is constructed from potentially tainted input, risking command injection.
 
 #### 🏹 Attack Vector
-1. An attacker identifies that the tools are in use without proper validation.
-2. The attacker crafts an input to leverage the tools, potentially executing unauthorized commands or accessing sensitive data.
-3. If the tools allow for harmful actions, they can compromise the system.
+An attacker could affect the contents of rm_cmd such that harmful commands are executed, potentially leading to data loss.
 
 #### 🛠 Remediation
-Implement strict access controls and validation checks for the tools in use. Ensure that only authorized inputs can trigger tool execution.
+Sanitize inputs used in the rm_cmd array and consider using safer alternatives for file deletions.
+
+---
+
+### 📍 Command Injection in `/var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmp18debp_s/src/agents/extensions/sandbox/modal/sandbox.py`
+- **Line**: 1249
+- **Function**: `unknown`
+- **Variable**: `restore_cmd`
+- **Syntax**: `out = await self.exec('sh', '-lc', restore_cmd, shell=False)`
+- **OWASP Category**: N/A
+- **CWE Indicator**: N/A
+- **Severity**: High
+
+> **Description**: The restore_cmd variable, constructed using user input, poses command injection risks.
+
+#### 🏹 Attack Vector
+An attacker could control parts of the restore_cmd through input manipulation, executing arbitrary commands.
+
+#### 🛠 Remediation
+Strictly validate and sanitize user inputs before constructing the restore_cmd variable.
+
+---
+
+### 📍 Command Injection in `/var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmp18debp_s/src/agents/extensions/sandbox/modal/sandbox.py`
+- **Line**: 1309
+- **Function**: `unknown`
+- **Variable**: `backup_cmd`
+- **Syntax**: `backup_out = await self.exec('sh', '-lc', backup_cmd, shell=False)`
+- **OWASP Category**: N/A
+- **CWE Indicator**: N/A
+- **Severity**: High
+
+> **Description**: The backup_cmd is susceptible to command injection through unsanitized inputs.
+
+#### 🏹 Attack Vector
+Manipulating input can lead to execution of arbitrary commands within the backup process, compromising the system.
+
+#### 🛠 Remediation
+Conduct thorough input validation and apply constraints on data sources used to construct backup_cmd.
+
+---
+
+### 📍 Command Injection in `/var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmp18debp_s/src/agents/sandbox/entries/mounts/patterns.py`
+- **Line**: 423
+- **Function**: `exec`
+- **Variable**: `joined_cmd`
+- **Syntax**: `result = await session.exec("sh", "-lc", joined_cmd, shell=False)`
+- **OWASP Category**: N/A
+- **CWE Indicator**: N/A
+- **Severity**: High
+
+> **Description**: The command `joined_cmd` is constructed from user-controlled parts, which can allow for command injection.
+
+#### 🏹 Attack Vector
+An attacker could manipulate the `cmd` or any of the environment variables to execute arbitrary commands on the server.
+
+#### 🛠 Remediation
+Validate and sanitize user inputs before adding them to `joined_cmd`. Consider using a safer method for the command execution that doesn't involve shell metacharacters.
+
+---
+
+### 📍 Command Injection in `/var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmp18debp_s/src/agents/sandbox/entries/mounts/patterns.py`
+- **Line**: 676
+- **Function**: `exec`
+- **Variable**: `server_cmd`
+- **Syntax**: `result = await session.exec("sh", "-lc", server_cmd, shell=False)`
+- **OWASP Category**: N/A
+- **CWE Indicator**: N/A
+- **Severity**: High
+
+> **Description**: The `server_cmd` variable is constructed using user input. It could lead to command injection vulnerabilities.
+
+#### 🏹 Attack Vector
+An attacker could craft an input that allows for the execution of arbitrary commands through the constructed `server_cmd`.
+
+#### 🛠 Remediation
+Sanitize all user-controlled inputs before inserting them into `server_cmd`. Use a safer alternative for command execution that avoids shell interpretation.
+
+---
+
+### 📍 Command Injection in `/var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmp18debp_s/src/agents/sandbox/entries/mounts/patterns.py`
+- **Line**: 705
+- **Function**: `exec`
+- **Variable**: `cmd`
+- **Syntax**: `result = await session.exec(*cmd, shell=False)`
+- **OWASP Category**: N/A
+- **CWE Indicator**: N/A
+- **Severity**: High
+
+> **Description**: The variable `cmd` contains user-controlled data which could allow for command injection when executed.
+
+#### 🏹 Attack Vector
+An attacker could manipulate the contents of `cmd`, leading to arbitrary command execution.
+
+#### 🛠 Remediation
+Ensure that all inputs used to construct `cmd` are properly validated and sanitized prior to execution.
+
+---
+
+### 📍 Command Injection in `/var/folders/nh/63rvs1v93f32thy6v5vhgfgh0000gn/T/tmp18debp_s/src/agents/sandbox/entries/mounts/patterns.py`
+- **Line**: 773
+- **Function**: `exec`
+- **Variable**: `mount_cmd`
+- **Syntax**: `mount_result = await session.exec(*mount_cmd, shell=False)`
+- **OWASP Category**: N/A
+- **CWE Indicator**: N/A
+- **Severity**: High
+
+> **Description**: The construction of `mount_cmd` could lead to command injection, as it includes user-controlled data.
+
+#### 🏹 Attack Vector
+An attacker can exploit the user input that contributes to `mount_cmd` and execute arbitrary commands.
+
+#### 🛠 Remediation
+Validate and sanitize all components that contribute to `mount_cmd` to prevent command injection risks.
 
 ---
 
