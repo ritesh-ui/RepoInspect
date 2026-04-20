@@ -24,7 +24,7 @@ class DetectedSnippet:
 PATTERNS = {
     'GENERAL': {
         # repoguard-ignore-next-line
-        'Hardcoded Secret': r'(?i)(api[_-]?key|password|secret|token|apikey)\s*=\s*[\'"][a-zA-Z0-9_\-\.\~]{8,}[\'"]',
+        'Hardcoded Secret': r'(?i)(api[_-]?key|password|secret|token|apikey)\s*=\s*[\'"](?!test|dummy|example|placeholder|your_|my_|fake)[a-zA-Z0-9_\-\.\~]{8,}[\'"]',
         'SQL Injection Pattern': r'(?i)(SELECT|INSERT|UPDATE|DELETE).*\+.*|\b(execute|query)\(.*\+.*',
         'Unsafe Eval/Exec': r'(?i)(eval|exec)\(',
         'Command Execution': r'(?i)(os\.(system|popen)|subprocess\.(run|call|Popen|check_output|check_call)\()',
