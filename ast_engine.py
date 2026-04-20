@@ -1,6 +1,6 @@
 import ast
 from dataclasses import dataclass
-from typing import List, Set, Dict, Optional
+from typing import List, Set, Dict, Optional, Union
 
 # Known sanitizer functions that break the taint chain
 SANITIZER_FUNCTIONS = {
@@ -64,7 +64,7 @@ def _matches_hint(name: str) -> bool:
     return any(seg.lower() in UNTRUSTED_VAR_HINTS for seg in segments if seg)
 
 # Qualified sink definitions: maps method names to the caller objects that make them dangerous
-# Format: 'method_name': { 'risk_type': str, 'dangerous_callers': set | None }
+# Format: 'method_name': { 'risk_type': str, 'dangerous_callers': Optional[set] }
 # If dangerous_callers is None, the method is ALWAYS dangerous (e.g., eval, exec, os.system)
 SCOPED_SINKS = {
     # Command Injection sinks — only dangerous on subprocess/os
@@ -106,6 +106,7 @@ class ASTScanner(ast.NodeVisitor):
         self.explicit_sources = set()  # High confidence tainted vars
         self.findings: List[TaintFlow] = []
         self.current_func = "global"
+        self.scope_stack = []
         self.imported_modules = set()  # Track imports for scope awareness
         self.propagation_map = propagation_map or GLOBAL_PROPAGATION_MAP
         self._detect_imports(source_code)
@@ -182,10 +183,26 @@ class ASTScanner(ast.NodeVisitor):
         # Line numbers in AST are 1-indexed
         return self.source_lines[max(0, start_lineno-5):end_lineno+2]
 
-    def visit_FunctionDef(self, node: ast.FunctionDef):
+    def visit_ClassDef(self, node: ast.ClassDef):
+        """Track class scope for qualified function naming."""
+        old_func = self.current_func
+        self.scope_stack.append(node.name)
+        self.current_func = f"{node.name} (class body)"
+        
+        self.generic_visit(node)
+        
+        self.scope_stack.pop()
+        self.current_func = old_func
+
+    def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef):
+        """Handle async functions identical to standard functions."""
+        self.visit_FunctionDef(node)
+
+    def visit_FunctionDef(self, node: Union[ast.FunctionDef, ast.AsyncFunctionDef]):
         """Analyze each function independently (Intra-function)."""
         old_func = self.current_func
-        self.current_func = node.name
+        qualified_name = ".".join(self.scope_stack + [node.name])
+        self.current_func = qualified_name
         
         # Clear/Track taint for a new function scope
         old_taint = self.tainted_vars.copy()
@@ -405,6 +422,7 @@ class CallGraphScanner(ast.NodeVisitor):
     def __init__(self, source_code: str):
         self.tainted_vars = set()
         self.current_func = "global"
+        self.scope_stack = []
         self.propagation_map = {}
         # Seed with initial sources
         for src in UNTRUSTED_SOURCES:
@@ -495,6 +513,31 @@ class CallGraphScanner(ast.NodeVisitor):
                 self.tainted_vars.add(root)
         self.generic_visit(node)
 
+    def visit_ClassDef(self, node: ast.ClassDef):
+        """Track class scope for qualified names in pre-pass."""
+        old_func = self.current_func
+        self.scope_stack.append(node.name)
+        self.current_func = f"{node.name} (class body)"
+        self.generic_visit(node)
+        self.scope_stack.pop()
+        self.current_func = old_func
+
+    def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef):
+        """Handle async functions in pre-pass."""
+        self.visit_FunctionDef(node)
+
+    def visit_FunctionDef(self, node: Union[ast.FunctionDef, ast.AsyncFunctionDef]):
+        """Track custom function calls passing tainted data."""
+        old_func = self.current_func
+        qualified_name = ".".join(self.scope_stack + [node.name])
+        self.current_func = qualified_name
+        self.scope_stack.append(node.name)
+        
+        self.generic_visit(node)
+        
+        self.scope_stack.pop()
+        self.current_func = old_func
+
     def visit_Call(self, node: ast.Call):
         """Check if this is a custom function call passing tainted data."""
         func_name = ""
@@ -560,27 +603,32 @@ class TreeSitterScanner:
         self.explicit_sources = set()
         self.findings: List[TaintFlow] = []
         self.current_func = "global"
+        self.scope_stack = []
         
         # Language-specific definitions
         self.language_config = {
             'javascript': {
                 'sinks': ['exec', 'execSync', 'spawn', 'spawnSync', 'query', 'execute', 'raw', 'create', 'run', 'invoke', 'predict', 'upsert', 'eval', 'Function'],
                 'funcs': ('function_declaration', 'arrow_function', 'method_definition'),
+                'classes': ('class_declaration', 'class'),
                 'assigns': ('assignment_expression', 'variable_declarator')
             },
             'typescript': {
                 'sinks': ['exec', 'execSync', 'spawn', 'spawnSync', 'query', 'execute', 'raw', 'create', 'run', 'invoke', 'predict', 'upsert', 'eval', 'Function'],
                 'funcs': ('function_declaration', 'arrow_function', 'method_definition'),
+                'classes': ('class_declaration', 'class'),
                 'assigns': ('assignment_expression', 'variable_declarator')
             },
             'java': {
                 'sinks': ['exec', 'start', 'execute', 'executeQuery', 'executeUpdate', 'createNativeQuery', 'create', 'run'],
                 'funcs': ('method_declaration', 'constructor_declaration'),
+                'classes': ('class_declaration', 'interface_declaration', 'enum_declaration'),
                 'assigns': ('assignment_expression', 'variable_declarator')
             },
             'go': {
                 'sinks': ['Command', 'Query', 'Exec', 'QueryRow', 'Get', 'Post'],
                 'funcs': ('function_declaration', 'method_declaration'),
+                'classes': ('type_declaration',),
                 'assigns': ('assignment_statement', 'short_var_declaration')
             }
         }
@@ -588,6 +636,7 @@ class TreeSitterScanner:
         config = self.language_config.get(language, self.language_config['javascript'])
         self.sink_list = config['sinks']
         self.func_types = config['funcs']
+        self.class_types = config.get('classes', ())
         self.assign_types = config['assigns']
 
     def get_slice(self, start_row: int, end_row: int) -> List[str]:
@@ -652,16 +701,34 @@ class TreeSitterScanner:
     def trace_node(self, node):
         """Recursively traverse Tree-Sitter nodes to find taint and sinks."""
         
-        # 1. Detect Entry Points & Update Function Context
+        # 1. Detect Entry Points, Scope Boundaries & Update Function Context
+        if node.type in self.class_types:
+            name_node = node.child_by_field_name('name') or node.child_by_field_name('identifier')
+            old_func = self.current_func
+            class_name = "UnknownClass"
+            if name_node:
+                class_name = name_node.text.decode('utf-8')
+            
+            self.scope_stack.append(class_name)
+            self.current_func = f"{class_name} (class body)"
+            
+            for child in node.children:
+                self.trace_node(child)
+            
+            self.scope_stack.pop()
+            self.current_func = old_func
+            return
+
         if node.type in self.func_types:
             # Capture Name
-            name_node = node.child_by_field_name('name')
+            name_node = node.child_by_field_name('name') or node.child_by_field_name('identifier')
             old_func = self.current_func
             old_tainted = self.tainted_vars.copy()
             old_explicit = self.explicit_sources.copy()
             
             if name_node:
-                self.current_func = name_node.text.decode('utf-8')
+                func_name = name_node.text.decode('utf-8')
+                self.current_func = ".".join(self.scope_stack + [func_name])
 
             params = node.child_by_field_name('parameters') or node.child_by_field_name('parameter_list')
             if params:

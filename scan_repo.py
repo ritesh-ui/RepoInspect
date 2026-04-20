@@ -169,8 +169,13 @@ def run_scan(repo_path, json_output=None, markdown_output=None, limit=None, max_
                     # Apply deterministic metadata
                     metadata = VULN_METADATA.get(hotspot.pattern_type, {})
                     
-                    result["file"] = hotspot.file_path
+                    result["file"] = os.path.relpath(hotspot.file_path, repo_path)
                     result["line"] = hotspot.line_number
+                    # Favor AST-detected qualified function name if AI result is generic
+                    ai_func = str(result.get("function_name", "")).lower()
+                    if ai_func in ("unknown", "global", "n/a", ""):
+                        result["function_name"] = hotspot.function_name
+                    
                     result["severity"] = metadata.get("base_severity", result.get("severity", "High"))
                     result["owasp_category"] = metadata.get("owasp", "N/A")
                     result["cwe"] = metadata.get("cwe", "N/A")
