@@ -105,7 +105,7 @@ python3 scan_repo.py https://github.com/org/repo --branch main
 | Project | Findings | Status | Report |
 | :--- | :--- | :--- | :--- |
 | **HF SmolAgents** | 0 High Risks (Verified Safe) | ✅ Audited | [View Report](reports/benchmarks/RESULTS_SMOLAGENTS.md) |
-| **OpenAI Agents SDK** | 1 Critical, 10 High Risks | ✅ Audited | [View Report](reports/benchmarks/RESULTS_OPENAI_SDK.md) |
+| **OpenAI Agents SDK** | 1 Critical, 4 High Risks | ✅ Audited | [View Report](reports/benchmarks/RESULTS_OPENAI_SDK.md) |
 
 > [!IMPORTANT]
 > **Case Study: Agentic Reasoning**
