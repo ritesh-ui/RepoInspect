@@ -24,6 +24,9 @@ TEST_REPORT.md
 VERIFY_REPORT.md
 RESULTS_*.md
 
+# Except benchmark reports
+!reports/benchmarks/
+
 # Temporary scan directories and files
 temp_dir/
 temp_subprocess.py
