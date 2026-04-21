@@ -32,11 +32,11 @@ jobs:
       run: |
         # Scan the current directory
         # Fails the build if High or Critical vulnerabilities are found
-        python scan_repo.py . --fail-on High --markdown REPO_GUARD_REPORT.md
+        python scan_repo.py . --fail-on High --markdown REPO_INSPECT_REPORT.md
 
     - name: Upload Report
       if: always()
       uses: actions/upload-artifact@v4
       with:
         name: repoinspect-report
-        path: REPO_GUARD_REPORT.md
+        path: REPO_INSPECT_REPORT.md
