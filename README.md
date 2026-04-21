@@ -1,4 +1,4 @@
-# 🛡️ RepoGuard: Deterministic AI Security Engine
+# 🛡️ RepoInspect: Deterministic AI Security Engine
 
 **The next generation of AppSec.** RepoGuard is a high-performance security engine that eliminates the "False Positive tax" by merging the surgical precision of **Abstract Syntax Trees (AST)** with the deep reasoning of **Autonomous AI Agents**.
 
