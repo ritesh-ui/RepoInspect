@@ -6,6 +6,8 @@
 [![Python Version](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/)
 [![Performance](https://img.shields.io/badge/Parallel-Scale-green.svg)](#)
 
+![RepoInspect Hero](assets/hero.png)
+
 ---
 
 ## ⚡ The Deterministic Moat
