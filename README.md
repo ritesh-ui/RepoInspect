@@ -106,12 +106,15 @@ python3 scan_repo.py https://github.com/org/repo --branch main
 
 | Project | Findings | Status | Report |
 | :--- | :--- | :--- | :--- |
-| **HF SmolAgents** | 0 High Risks (Verified Safe) | ✅ Audited | [View Report](reports/benchmarks/RESULTS_SMOLAGENTS.md) |
 | **OpenAI Agents SDK** | 1 Critical, 4 High Risks | ✅ Audited | [View Report](reports/benchmarks/RESULTS_OPENAI_SDK.md) |
+| **Mem0 (AI Memory)** | 21 High Risks (SQL/Command Injection) | ✅ Audited | [View Report](reports/benchmarks/RESULTS_MEM0.md) |
+| **Firecrawl (Scraping)** | 2 High Risks (Hardcoded Secrets) | ✅ Audited | [View Report](reports/benchmarks/RESULTS_FIRECRAWL.md) |
+| **Dify (LLM Platform)** | Analyzing (8,900+ files)... | ⏳ In Progress | [Pending...] |
+| **HF SmolAgents** | 0 High Risks (Verified Safe) | ✅ Audited | [View Report](reports/benchmarks/RESULTS_SMOLAGENTS.md) |
 
 > [!IMPORTANT]
-> **Case Study: Agentic Reasoning**
-> In a recent audit of the OpenAI Agents SDK, RepoInspect successfully traced a `subprocess.check_call` vulnerability by identifying that a "safe-looking" package list was actually sourced from external user intent across three nested function calls—a flow that every other modern scanner missed.
+> **Case Study: Forensic Taint Tracking**
+> In **Mem0**, RepoInspect identified multiple **SQL Injection** vulnerabilities in the `pgvector` store. While traditional scanners missed the dynamic interpolation of `vector_id` within complex class methods, our **Heuristic Scope Hunter** correctly tracked the taint across function boundaries to the database sink.
 
 ---
 
