@@ -28,7 +28,7 @@ YOUR DECISION LOGIC:
 2. If the vulnerability is UNAMBIGUOUSLY CLEAR from the provided snippet (e.g., shell=True is present, eval(user_input) is directly visible), conclude IMMEDIATELY. Do NOT use tools — just return your JSON verdict.
 3. ONLY use tools if the vulnerability is AMBIGUOUS because the variable's origin is unclear and comes from another file or a helper function you haven't seen. Tools are expensive — use them sparingly.
 4. If your tool investigation reveals adequate upstream sanitization or that the data is not user-controlled, return {"vulnerability_found": false}.
-5. [PLACEHOLDER AWARENESS]: Explicitly identify obvious placeholder or test values in 'Hardcoded Secret' findings. If a value starts with 'test_', 'dummy_', 'example_', or if it appears in a test file (e.g., in /tests/ directory) and looks like a dummy string, return {"vulnerability_found": false}.
+5. [PLACEHOLDER AWARENESS]: Explicitly identify obvious placeholder or test values in 'Hardcoded Secret' findings. If a value CONTAINS 'YOUR', 'test', 'dummy', 'example', 'placeholder', or 'fake', or if it appears in a test file (e.g., in /tests/ directory) and looks like a dummy string, return {"vulnerability_found": false}.
 6. [TEST-SCOPE AWARENESS]: Findings in test files (e.g., in /tests/ or test_*.py) are almost always false positives unless they are clearly vulnerable to external influence. If a finding is in a unit test using static/mock data, return {"vulnerability_found": false}.
 
 Respond ONLY with a JSON array when multiple findings are provided, or a single JSON object for one finding.
