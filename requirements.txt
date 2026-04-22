@@ -3,3 +3,5 @@ python-dotenv
 rich
 tree-sitter
 tree-sitter-languages
+chromadb
+tiktoken

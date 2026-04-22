@@ -8,6 +8,10 @@ from scanner import scan_file, detect_ai_stack, VULN_METADATA
 from llm_analyzer import analyze_vulnerability, analyze_vulnerabilities_batch
 from ast_engine import run_taint_pre_pass_single, merge_propagation_maps, GLOBAL_PROPAGATION_MAP
 from reporter import report_findings_cli, report_findings_json, report_ai_stack, report_findings_markdown
+try:
+    from rag_indexer import init_rag_indexer
+except ImportError:
+    init_rag_indexer = None
 from rich.console import Console
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 
@@ -72,6 +76,10 @@ def run_scan(repo_path, json_output=None, markdown_output=None, limit=None, max_
     
     if GLOBAL_PROPAGATION_MAP:
         console.print(f"🔗 Identified {len(GLOBAL_PROPAGATION_MAP)} potential cross-function propagators.")
+
+    # 2.5 Build Semantic AST-Aware GraphRAG Index
+    if init_rag_indexer:
+        init_rag_indexer(repo_path, files)
 
     # 3. Local pattern scan (Pass 2 - Parallel)
     console.print("⏳ Performing deep pattern scanning (Pass 2 - Parallel)...")

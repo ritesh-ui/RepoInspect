@@ -2,6 +2,10 @@ import os
 import re
 import json
 from collections import OrderedDict
+try:
+    from rag_indexer import query_rag
+except ImportError:
+    query_rag = None
 
 def restrict_path(base_path: str, target_path: str) -> str:
     """Ensures the target path is within the safe base repository path."""
@@ -153,6 +157,23 @@ AGENT_TOOLS = [
                 "required": ["directory_path"]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "semantic_search",
+            "description": "Uses AST-Aware GraphRAG to search the repository for semantic chunks (Functions, Classes, Methods). Use this instead of text_search when you need to see the implementation of a specific function or class to understand how it handles data. It guarantees returning the entire unbroken function block.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "description": "The name of the function, class, or semantic concept to search for (e.g., 'sanitize_input function' or 'DatabaseHandler class')"
+                    }
+                },
+                "required": ["query"]
+            }
+        }
     }
 ]
 
@@ -169,5 +190,9 @@ def execute_tool(tool_name: str, arguments: str, base_path: str) -> str:
         return text_search(args.get("query", ""), base_path)
     elif tool_name == "list_directory":
         return list_directory(args.get("directory_path", ""), base_path)
+    elif tool_name == "semantic_search":
+        if query_rag:
+            return query_rag(args.get("query", ""))
+        return "Error: GraphRAG is not available. Please use text_search instead."
     else:
         return f"Error: Unknown tool '{tool_name}'."
