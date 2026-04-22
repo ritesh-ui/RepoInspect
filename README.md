@@ -121,4 +121,4 @@ python3 scan_repo.py https://github.com/org/repo --branch main
 ---
 
 ## 🛡️ License
-Distributed under the MIT License. See `LICENSE` for more information.
+Distributed under the GNU Affero General Public License v3.0 (AGPL-3.0). See `LICENSE` for more information.
