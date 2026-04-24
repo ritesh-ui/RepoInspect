@@ -1,41 +1,20 @@
-venv/
-__pycache__/
+# Environment
 .env
+venv/
+.venv/
+__pycache__/
 
-# Exclude generated reports and scan output
-*_report.json
-*_report.md
-!INVESTOR_AUDIT_REPORT.md
-regression_report.json
-enterprise_v2.json
-*.json
-!package.json
-!package-lock.json
+# Temporary Repositories (Cloned for analysis)
+temp_*/
 
-# Auto-generated Markdown reports
-OSS_SCAN_REPORT.md
-AI_SECURITY_REPORT.md
-SCAN_REPORT.md
-ENTERPRISE_SCAN.md
-ENTERPRISE_SCAN_V2.md
-JS_TS_VERIFICATION.md
-PRECISION_TEST.md
-TEST_RESULT.md
-TEST_REPORT.md
-VERIFY_REPORT.md
-RESULTS_*.md
+# Logs and Reports
+*.txt
+reports/benchmarks/*.txt
+!reports/benchmarks/*.md
 
-# Except benchmark reports
-!reports/
-!reports/**
+# IDEs
+.vscode/
+.idea/
 
-# Temporary scan directories and files
-temp_dir/
-temp_subprocess.py
-
-# Build artifacts
-*.pyc
-*.pyo
-build/
-dist/
-*.egg-info/
+# OS files
+.DS_Store
