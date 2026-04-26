@@ -115,6 +115,7 @@ python3 scan_repo.py https://github.com/org/repo --branch main
 | **OpenAI Agents SDK** | 10 High Risks (SQL & Command Injection) | ✅ Audited | [View Report](reports/benchmarks/RESULTS_OPENAI_SDK.md) |
 | **Mem0 (AI Memory)** | 23 High Risks (SQL/Prompt Injection/Hardcoded Secrets) | ✅ Audited | [View Report](reports/benchmarks/RESULTS_MEM0.md) |
 | **Dify (LLM Platform)** | 28 High Risks (SQL Injection in Vector DB Adapters) | ✅ Audited | [View Report](reports/benchmarks/RESULTS_DIFY.md) |
+| **Hindsight (LLM Engine)** | 10 High Risks (SQL & Command Injection) | ✅ Audited | [View Report](reports/benchmarks/RESULTS_HINDSIGHT.md) |
 | **Firecrawl (Scraping)** | 0 High Risks (Verified Safe) | ✅ Audited | [View Report](reports/benchmarks/RESULTS_FIRECRAWL.md) |
 | **HF SmolAgents** | 0 High Risks (Verified Safe) | ✅ Audited | [View Report](reports/benchmarks/RESULTS_SMOLAGENTS.md) |
 
