@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RepoInspect | Advanced AI Security Audits</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0c10;
+            --bg-card: #161b22;
+            --accent-blue: #58a6ff;
+            --accent-cyan: #39d353;
+            --text-main: #c9d1d9;
+            --text-bright: #ffffff;
+            --glass: rgba(255, 255, 255, 0.05);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* --- Navigation --- */
+        nav {
+            padding: 1.5rem 10%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(10, 12, 16, 0.8);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid var(--glass);
+        }
+
+        .logo {
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: var(--text-bright);
+            letter-spacing: -1px;
+        }
+
+        .logo span {
+            color: var(--accent-blue);
+        }
+
+        .nav-links a {
+            color: var(--text-main);
+            text-decoration: none;
+            margin-left: 2rem;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--accent-blue);
+        }
+
+        /* --- Hero Section --- */
+        .hero {
+            padding: 8rem 10% 4rem;
+            display: flex;
+            align-items: center;
+            gap: 4rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .hero-content {
+            flex: 1;
+        }
+
+        .hero-content h1 {
+            font-size: 4rem;
+            line-height: 1.1;
+            font-weight: 800;
+            color: var(--text-bright);
+            margin-bottom: 1.5rem;
+        }
+
+        .hero-content h1 span {
+            background: linear-gradient(90deg, var(--accent-blue), #bc8cff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-content p {
+            font-size: 1.2rem;
+            margin-bottom: 2.5rem;
+            max-width: 600px;
+        }
+
+        .hero-image {
+            flex: 1;
+            position: relative;
+        }
+
+        .hero-image img {
+            width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--glass);
+        }
+
+        /* --- Buttons --- */
+        .btn {
+            display: inline-block;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background-color: var(--accent-blue);
+            color: #0d1117;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(88, 166, 255, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--glass);
+            color: var(--text-bright);
+            margin-left: 1rem;
+            border: 1px solid var(--glass);
+        }
+
+        /* --- Metrics / Social Proof --- */
+        .proof-section {
+            padding: 4rem 10%;
+            text-align: center;
+        }
+
+        .proof-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .proof-card {
+            background: var(--bg-card);
+            padding: 2.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--glass);
+        }
+
+        .proof-card h3 {
+            font-size: 3rem;
+            color: var(--accent-blue);
+            margin-bottom: 0.5rem;
+        }
+
+        /* --- Table Section --- */
+        .table-section {
+            padding: 6rem 10%;
+            background: #0d1117;
+        }
+
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            margin-top: 3rem;
+            border-radius: 12px;
+            border: 1px solid var(--glass);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--bg-card);
+        }
+
+        th, td {
+            padding: 1.5rem;
+            text-align: left;
+            border-bottom: 1px solid var(--glass);
+        }
+
+        th {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-bright);
+            font-weight: 600;
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            background: rgba(57, 211, 83, 0.1);
+            color: var(--accent-cyan);
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        /* --- Services --- */
+        .services {
+            padding: 6rem 10%;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .section-header h2 {
+            font-size: 2.5rem;
+            color: var(--text-bright);
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .service-card {
+            padding: 2rem;
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid var(--glass);
+            transition: border 0.3s;
+        }
+
+        .service-card:hover {
+            border-color: var(--accent-blue);
+        }
+
+        .service-card h4 {
+            color: var(--text-bright);
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        /* --- Footer --- */
+        footer {
+            padding: 4rem 10%;
+            text-align: center;
+            border-top: 1px solid var(--glass);
+            background: var(--bg-dark);
+        }
+
+        .footer-cta h2 {
+            font-size: 3rem;
+            color: var(--text-bright);
+            margin-bottom: 1rem;
+        }
+
+        .footer-links {
+            margin-top: 2rem;
+        }
+
+        .footer-links a {
+            color: var(--text-main);
+            margin: 0 1rem;
+            text-decoration: none;
+        }
+
+        @media (max-width: 900px) {
+            .hero {
+                flex-direction: column;
+                text-align: center;
+                padding-top: 4rem;
+            }
+            .hero-content h1 { font-size: 2.5rem; }
+            .hero-content p { margin: 0 auto 2.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="logo">Repo<span>Inspect</span></div>
+        <div class="nav-links">
+            <a href="#impact">Impact</a>
+            <a href="#services">Services</a>
+            <a href="https://github.com/ritesh-ui/RepoInspect">GitHub</a>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <div class="hero-content">
+            <h1>AI Security Scanning <span>Built for the AI Era</span></h1>
+            <p>Proactively secure your repositories from code generation risks, LLM injections, and Vector DB vulnerabilities with the industry's most advanced AI auditor.</p>
+            <div class="cta">
+                <a href="https://www.upwork.com/services/product/development-it-a-deep-forensic-security-audit-for-your-ai-or-llm-application-2049204454850800454?ref=project_share" class="btn btn-primary">Book an Audit on Upwork</a>
+                <a href="https://github.com/ritesh-ui/RepoInspect" class="btn btn-secondary">View Engine Source</a>
+            </div>
+        </div>
+        <div class="hero-image">
+            <img src="https://raw.githubusercontent.com/ritesh-ui/RepoInspect/main/assets/hero.png" alt="RepoInspect Dashboard">
+        </div>
+    </header>
+
+    <section class="proof-section" id="impact">
+        <div class="section-header">
+            <h2>Proven Results</h2>
+            <p>We don't just scan code. We find the vulnerabilities that standard tools miss.</p>
+        </div>
+        <div class="proof-grid">
+            <div class="proof-card">
+                <h3>71+</h3>
+                <p>Critical Vulnerabilities Found</p>
+            </div>
+            <div class="proof-card">
+                <h3>4+</h3>
+                <p>Major Platforms Audited</p>
+            </div>
+            <div class="proof-card">
+                <h3>0</h3>
+                <p>False Positive Record</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="table-section">
+        <div class="section-header">
+            <h2>Real-World Impacts</h2>
+            <p>Direct forensic audits on the foundation of the AI ecosystem.</p>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Project</th>
+                        <th>Findings</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>OpenAI Agents SDK</strong></td>
+                        <td>10 High Risks (SQL & Command Injection)</td>
+                        <td><span class="status-badge">✅ Audited</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Mem0 (AI Memory)</strong></td>
+                        <td>23 High Risks (SQL/Prompt Injection)</td>
+                        <td><span class="status-badge">✅ Audited</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Dify (LLM Platform)</strong></td>
+                        <td>28 High Risks (Vector DB SQLi)</td>
+                        <td><span class="status-badge">✅ Audited</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Hindsight (LLM Engine)</strong></td>
+                        <td>10 High Risks (Logic Flaws)</td>
+                        <td><span class="status-badge">✅ Audited</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="services" id="services">
+        <div class="section-header">
+            <h2>Professional Services</h2>
+            <p>Secure your production infrastructure with expert forensic auditing.</p>
+        </div>
+        <div class="services-grid">
+            <div class="service-card">
+                <h4>Zero-False-Positive Audits</h4>
+                <p>Expert manual review of all scanner findings to eliminate noise and focus on real threats.</p>
+            </div>
+            <div class="service-card">
+                <h4>AI-Native Vulnerability Scans</h4>
+                <p>Specialized detection for Prompt Injection, Excessive Agency, and LLM-specific logic flaws.</p>
+            </div>
+            <div class="service-card">
+                <h4>Remediation Roadmap</h4>
+                <p>Actionable guidance and production-ready code patches to secure your AI workflows.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-cta">
+            <h2>Secure your AI future.</h2>
+            <p>Ready to audit your repository? Let's talk.</p>
+            <br>
+            <a href="https://www.upwork.com/services/product/development-it-a-deep-forensic-security-audit-for-your-ai-or-llm-application-2049204454850800454?ref=project_share" class="btn btn-primary">Hire on Upwork</a>
+        </div>
+        <div class="footer-links">
+            <a href="https://www.linkedin.com/in/ritesh-singh-6619ab190">LinkedIn</a>
+            <a href="mailto:riteshsingh545@gmail.com">Email</a>
+            <p style="margin-top: 2rem; font-size: 0.8rem; color: #484f58;">&copy; 2026 RepoInspect. All rights reserved.</p>
+        </div>
+    </footer>
+
+</body>
+</html>

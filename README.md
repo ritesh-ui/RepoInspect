@@ -136,7 +136,7 @@ If you need a **Deep Forensic Audit** of your repository, I offer professional s
 *   **Remediation Roadmap**: Actionable guidance and code patches to secure your production infrastructure.
 *   **Compliance Readiness**: Detailed PDF forensic reports for SOC2, ISO 27001, and board-level reviews.
 
-**[👉 Request a Professional Audit](mailto:riteshsingh545@gmail.com?subject=RepoInspect%20Security%20Audit%20Request)** | **[Connect on LinkedIn](https://www.linkedin.com/in/ritesh-singh-6619ab190)**
+**[🚀 Hire on Upwork (Fixed Price Audits)](https://www.upwork.com/services/product/development-it-a-deep-forensic-security-audit-for-your-ai-or-llm-application-2049204454850800454?ref=project_share)** | **[Request Custom Audit via Email](mailto:riteshsingh545@gmail.com?subject=RepoInspect%20Security%20Audit%20Request)** | **[Connect on LinkedIn](https://www.linkedin.com/in/ritesh-singh-6619ab190)**
 
 ---
 
