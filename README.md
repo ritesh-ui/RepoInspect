@@ -8,6 +8,9 @@
 
 ![RepoInspect Hero](assets/hero.png)
 
+> [!IMPORTANT]
+> **Battle-Tested Authority:** RepoInspect has identified **80+ High-Severity vulnerabilities** across the foundations of the AI ecosystem, including **LangChain (RCE)**, **CrewAI (Memory Hijacking)**, **Dify (Vector DB SQLi)**, and **OpenAI SDK**. [View Forensic Reports](#-case-studies-real-world-impacts)
+
 ---
 
 ## ⚡ The Deterministic Moat
