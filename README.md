@@ -112,6 +112,7 @@ python3 scan_repo.py https://github.com/org/repo --branch main
 
 | Project | Findings | Status | Report |
 | :--- | :--- | :--- | :--- |
+| **CrewAI** | 5 High Risks (Memory Injection) | ✅ Audited | [View Report](reports/benchmarks/RESULTS_CREWAI.md) |
 | **LangChain** | 10 High Risks (Prompt & Command Injection) | ✅ Audited | [View Report](reports/benchmarks/RESULTS_LANGCHAIN.md) |
 | **OpenAI Agents SDK** | 10 High Risks (SQL & Command Injection) | ✅ Audited | [View Report](reports/benchmarks/RESULTS_OPENAI_SDK.md) |
 | **Mem0 (AI Memory)** | 23 High Risks (SQL/Prompt Injection/Hardcoded Secrets) | ✅ Audited | [View Report](reports/benchmarks/RESULTS_MEM0.md) |
