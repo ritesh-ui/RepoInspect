@@ -107,13 +107,30 @@ class RAGIndexer:
             import chromadb
             from chromadb.utils import embedding_functions
             self.client = chromadb.PersistentClient(path=self.db_dir)
-            openai_ef = embedding_functions.OpenAIEmbeddingFunction(
-                api_key=os.getenv("OPENAI_API_KEY"),
-                model_name="text-embedding-3-small"
-            )
+            
+            # Local Provider Support for Embeddings
+            local_provider = os.environ.get("REPOINSPECT_LOCAL_PROVIDER")
+            if local_provider == "ollama":
+                ef = embedding_functions.OpenAIEmbeddingFunction(
+                    api_key="ollama",
+                    api_base="http://localhost:11434/v1",
+                    model_name=os.environ.get("LOCAL_MODEL", "llama3")
+                )
+            elif local_provider == "lmstudio":
+                ef = embedding_functions.OpenAIEmbeddingFunction(
+                    api_key="lmstudio",
+                    api_base="http://localhost:1234/v1",
+                    model_name=os.environ.get("LOCAL_MODEL", "local-model")
+                )
+            else:
+                ef = embedding_functions.OpenAIEmbeddingFunction(
+                    api_key=os.getenv("OPENAI_API_KEY"),
+                    model_name="text-embedding-3-small"
+                )
+
             self.collection = self.client.get_or_create_collection(
                 name=self._collection_name,
-                embedding_function=openai_ef
+                embedding_function=ef
             )
             self.enabled = True
         except ImportError:
@@ -155,14 +172,30 @@ class RAGIndexer:
         if self.collection.count() > 0:
             console.print("[yellow]🔄 Source files changed — rebuilding GraphRAG index...[/yellow]")
             self.client.delete_collection(self._collection_name)
+            
             from chromadb.utils import embedding_functions
-            openai_ef = embedding_functions.OpenAIEmbeddingFunction(
-                api_key=os.getenv("OPENAI_API_KEY"),
-                model_name="text-embedding-3-small"
-            )
+            local_provider = os.environ.get("REPOINSPECT_LOCAL_PROVIDER")
+            if local_provider == "ollama":
+                ef = embedding_functions.OpenAIEmbeddingFunction(
+                    api_key="ollama",
+                    api_base="http://localhost:11434/v1",
+                    model_name=os.environ.get("LOCAL_MODEL", "llama3")
+                )
+            elif local_provider == "lmstudio":
+                ef = embedding_functions.OpenAIEmbeddingFunction(
+                    api_key="lmstudio",
+                    api_base="http://localhost:1234/v1",
+                    model_name=os.environ.get("LOCAL_MODEL", "local-model")
+                )
+            else:
+                ef = embedding_functions.OpenAIEmbeddingFunction(
+                    api_key=os.getenv("OPENAI_API_KEY"),
+                    model_name="text-embedding-3-small"
+                )
+                
             self.collection = self.client.get_or_create_collection(
                 name=self._collection_name,
-                embedding_function=openai_ef
+                embedding_function=ef
             )
 
         console.print(f"[bold yellow]⏳ Building AST-Aware GraphRAG Vector Index for {len(files)} files...[/bold yellow]")
@@ -256,7 +289,8 @@ _RAG_INDEXER = None
 
 def init_rag_indexer(base_path: str, files: List[str]):
     global _RAG_INDEXER
-    if not os.getenv("OPENAI_API_KEY"):
+    local_provider = os.environ.get("REPOINSPECT_LOCAL_PROVIDER")
+    if not local_provider and not os.getenv("OPENAI_API_KEY"):
         console.print("[yellow]Skipping AST-Aware GraphRAG: No OPENAI_API_KEY found.[/yellow]")
         return
     try:

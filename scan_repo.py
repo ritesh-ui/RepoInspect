@@ -8,6 +8,7 @@ from scanner import scan_file, detect_ai_stack, VULN_METADATA
 from llm_analyzer import analyze_vulnerability, analyze_vulnerabilities_batch
 from ast_engine import run_taint_pre_pass_single, merge_propagation_maps, GLOBAL_PROPAGATION_MAP
 from reporter import report_findings_cli, report_findings_json, report_ai_stack, report_findings_markdown
+from report_generator import generate_enterprise_report
 try:
     from rag_indexer import init_rag_indexer
 except ImportError:
@@ -58,7 +59,7 @@ def process_file_patterns(file_arg):
     hotspots = scan_file(file_path, lines, base_path=repo_path)
     return hotspots, set(stack)
 
-def run_scan(repo_path, json_output=None, markdown_output=None, limit=None, max_workers=None):
+def run_scan(repo_path, json_output=None, markdown_output=None, html_output=None, limit=None, max_workers=None):
     """Core scanning logic with Parallelism and Batching."""
     # 1. Load files
     files = get_repo_files(repo_path)
@@ -204,6 +205,9 @@ def run_scan(repo_path, json_output=None, markdown_output=None, limit=None, max_
     
     if markdown_output:
         report_findings_markdown(all_findings, markdown_output, ai_stack)
+
+    if html_output:
+        generate_enterprise_report(all_findings, html_output, target_repo=repo_path, ai_stack=ai_stack)
     
     return all_findings
 
@@ -212,16 +216,46 @@ def main():
     parser.add_argument("repo_path", help="Path or Git URL of the repository to scan")
     parser.add_argument("--json", help="Output findings to a JSON file", metavar="FILE")
     parser.add_argument("--markdown", help="Output findings to a Markdown file", metavar="FILE")
+    parser.add_argument("--html", help="Output a professional Enterprise HTML report", metavar="FILE")
     parser.add_argument("--branch", help="Specific branch to scan (for remote repos)", metavar="BRANCH")
     parser.add_argument("--fail-on", help="Fail with exit code 1 if vulnerabilities of this severity or higher are found", 
                         choices=["Low", "Medium", "High", "Critical"], metavar="SEVERITY")
     parser.add_argument("--limit", type=int, help="Limit the number of AI-analyzed hotspots (useful for large repos)")
+    parser.add_argument("--ollama", action="store_true", help="Use local Ollama instance (localhost:11434)")
+    parser.add_argument("--lmstudio", action="store_true", help="Use local LM Studio instance (localhost:1234)")
+    parser.add_argument("--local-model", help="Specify local model name (e.g. llama3)")
     args = parser.parse_args()
 
     repo_path = args.repo_path
     
-    # Graceful check for API Key
-    if not os.getenv("OPENAI_API_KEY"):
+    # Local Provider Setup
+    if args.ollama:
+        os.environ["REPOINSPECT_LOCAL_PROVIDER"] = "ollama"
+        if args.local_model: os.environ["LOCAL_MODEL"] = args.local_model
+    elif args.lmstudio:
+        os.environ["REPOINSPECT_LOCAL_PROVIDER"] = "lmstudio"
+        if args.local_model: os.environ["LOCAL_MODEL"] = args.local_model
+
+    # Pre-flight health check for local providers
+    local_provider = os.environ.get("REPOINSPECT_LOCAL_PROVIDER")
+    if local_provider:
+        import urllib.request
+        port = "11434" if local_provider == "ollama" else "1234"
+        # LM Studio exposes v1/models, Ollama base URL returns 200
+        url = f"http://localhost:{port}/v1/models" if local_provider == "lmstudio" else f"http://localhost:{port}"
+        
+        try:
+            with urllib.request.urlopen(url, timeout=2) as response:
+                pass # Success
+            console.print(f"[bold green]✅ Local AI Detected ({local_provider.upper()})[/bold green]")
+            console.print(f"💡 Tip: For high-precision auditing, we recommend 'llama3'.")
+        except Exception:
+            console.print(f"\n[bold red]⚠️  ERROR: {local_provider.upper()} NOT DETECTED[/bold red]")
+            console.print(f"Please ensure {local_provider.upper()} is running on port {port} before starting a local scan.")
+            sys.exit(1)
+
+    # Graceful check for API Key (skipped if local provider is used)
+    if not local_provider and not os.getenv("OPENAI_API_KEY"):
         console.print("\n" + "="*60, style="yellow")
         console.print("⚠️  WARNING: OPENAI_API_KEY NOT FOUND", style="bold yellow")
         console.print("="*60, style="yellow")
@@ -237,7 +271,7 @@ def main():
         with tempfile.TemporaryDirectory() as temp_dir:
             if clone_repo(repo_path, temp_dir, args.branch):
                 console.print(f"[bold blue]🚀 Starting scan on remote repo...[/bold blue]")
-                findings = run_scan(temp_dir, args.json, args.markdown, args.limit)
+                findings = run_scan(temp_dir, args.json, args.markdown, args.html, args.limit)
             else:
                 sys.exit(1)
     else:
@@ -246,7 +280,7 @@ def main():
             sys.exit(1)
         
         console.print(f"[bold blue]🚀 Starting scan on:[/bold blue] {repo_path}")
-        findings = run_scan(repo_path, args.json, args.markdown, args.limit)
+        findings = run_scan(repo_path, args.json, args.markdown, args.html, args.limit)
 
     # Exit code logic for CI/CD
     if args.fail_on:

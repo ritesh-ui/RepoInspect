@@ -18,3 +18,9 @@ reports/benchmarks/*.txt
 
 # OS files
 .DS_Store
+
+# Generated Reports
+*.html
+
+# Audit Target Folders
+*_audit/
