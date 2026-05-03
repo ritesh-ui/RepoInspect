@@ -104,6 +104,19 @@ python3 scan_repo.py /path/to/repo
 python3 scan_repo.py . --fail-on High --markdown SECURITY_REPORT.md
 ```
 
+### Local AI Support (Privacy-First)
+Ensure zero code leaves your machine by running the analyzer locally. *(Requires LM Studio or Ollama).*
+```bash
+python3 scan_repo.py /path/to/repo --lmstudio --local-model llama3
+```
+> **Note for LM Studio Users:** Ensure you enable **CORS (Cross-Origin Resource Sharing)** in the server settings so the Python client can connect.
+
+### Enterprise HTML Reports
+Generate a C-Suite ready forensic HTML report.
+```bash
+python3 scan_repo.py /path/to/repo --html forensic_report.html
+```
+
 ### Remote Repository Audit
 ```bash
 python3 scan_repo.py https://github.com/org/repo --branch main
