@@ -24,3 +24,6 @@ reports/benchmarks/*.txt
 
 # Audit Target Folders
 *_audit/
+
+# Local checkout of private UI repo
+new_ui/

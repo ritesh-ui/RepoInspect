@@ -211,35 +211,43 @@ def logout(response: Response):
     return {"status": "success", "message": "Logged out"}
 
 @app.post("/api/analyze")
-def start_scan(req: ScanRequestSchema, current_user: dict = Depends(get_current_user)):
+def start_scan(req: ScanRequestSchema, request: Request):
     url = req.repo_url.strip()
     
-    # Strict regex validation to prevent URL injection and path traversal
-    github_pattern = r'^https?://(www\.)?github\.com/[a-zA-Z0-9_-]+/[a-zA-Z0-9._-]+$'
+    # Extract optional authentication state
+    token = request.cookies.get("session_token")
+    user_id = None
+    if token:
+        payload = verify_session_token(token)
+        if payload:
+            user_id = payload.get("user_id")
+    
+    # Strict regex validation supporting optional .git suffix
+    github_pattern = r'^https?://(www\.)?github\.com/[a-zA-Z0-9_-]+/[a-zA-Z0-9._-]+(\.git)?$'
     if not re.match(github_pattern, url):
         raise HTTPException(status_code=400, detail="Invalid GitHub repository URL format")
 
-    # Secure subprocess execution (avoid shell=True)
     try:
         conn = sqlite3.connect(DATABASE_FILE)
         cursor = conn.cursor()
         
-        # Log scan start
+        # Log scan start with optional user ID
         cursor.execute(
             "INSERT INTO scans (user_id, repo_url, status) VALUES (?, ?, ?)",
-            (current_user["user_id"], url, "processing")
+            (user_id, url, "processing")
         )
         conn.commit()
         scan_id = cursor.lastrowid
         conn.close()
 
-        # Call the existing CLI scanner securely
-        # Note: In production this would run inside a background task queue (Celery, Inngest, etc.)
-        # Here we run it as a safe subprocess call.
-        cmd = [sys.executable, "scan_repo.py", url]
+        # Build paths and run the CLI scanner generating a JSON report
+        os.makedirs("new_ui/reports", exist_ok=True)
+        json_report_path = f"new_ui/reports/scan_{scan_id}.json"
+        
+        cmd = [sys.executable, "scan_repo.py", "--json", json_report_path, url]
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
         
-        # Update scan table with mock or computed result score
+        # Update scan table status
         conn = sqlite3.connect(DATABASE_FILE)
         cursor = conn.cursor()
         cursor.execute(
