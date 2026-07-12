@@ -221,8 +221,9 @@ def scan_file(file_path, lines, base_path="", context_lines=20):
             # [Fix #1]: Inter-Procedural Propagation awareness
             results = analyze_python_taint(file_path, source_code, GLOBAL_PROPAGATION_MAP)
             for r in results:
-                if r.confidence == "Low":
-                    continue # Heavently deprioritize or filter out generic parameter trace flow
+                # Allow high-severity critical sinks (RCE/Command Injection) to bypass the 'Low' confidence filter for verification
+                if r.confidence == "Low" and r.sink_type not in ("Unsafe Eval", "Command Injection", "Insecure Deserialization"):
+                    continue
 
                 lineno = min(r.lineno, max_line)
                 
@@ -255,8 +256,9 @@ def scan_file(file_path, lines, base_path="", context_lines=20):
             ast_processed = True
             results = analyze_enterprise_taint(file_path, source_code)
             for r in results:
-                if r.confidence == "Low":
-                    continue # Filter out generic parameters
+                # Allow high-severity critical sinks (RCE/Command Injection) to bypass the 'Low' confidence filter for verification
+                if r.confidence == "Low" and r.sink_type not in ("Unsafe Eval", "Command Injection", "Insecure Deserialization"):
+                    continue
 
                 lineno = min(r.lineno, max_line)
                 

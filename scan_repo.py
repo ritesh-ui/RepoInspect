@@ -168,13 +168,27 @@ def run_scan(repo_path, json_output=None, markdown_output=None, html_output=None
                 results = [results]
                 
             for i, result in enumerate(results):
-                if i >= len(batch): break # Guard
-                
                 if not isinstance(result, dict):
                     continue
-                    
+                
+                # Align LLM result with original hotspot using 'finding_id' if present, falling back to index
+                hotspot = None
+                finding_id_raw = result.get("finding_id")
+                if finding_id_raw is not None:
+                    try:
+                        idx = int(finding_id_raw)
+                        if 0 <= idx < len(batch):
+                            hotspot = batch[idx]
+                    except (ValueError, TypeError):
+                        pass
+                
+                if hotspot is None:
+                    if i < len(batch):
+                        hotspot = batch[i]
+                    else:
+                        continue
+
                 if result.get("vulnerability_found"):
-                    hotspot = batch[i]
                     # Apply deterministic metadata
                     metadata = VULN_METADATA.get(hotspot.pattern_type, {})
                     
