@@ -319,8 +319,13 @@ def start_scan(req: ScanRequestSchema, request: Request):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal scan failure: {str(e)}")
 
-# Serve frontend static assets from 'new_ui' directory
-app.mount("/", StaticFiles(directory="new_ui", html=True), name="static")
+# Serve frontend static assets from 'new_ui' directory if it exists
+if os.path.exists("new_ui"):
+    app.mount("/", StaticFiles(directory="new_ui", html=True), name="static")
+else:
+    @app.get("/")
+    def read_root():
+        return {"status": "healthy", "message": "RepoInspect API is running"}
 
 if __name__ == "__main__":
     import uvicorn
