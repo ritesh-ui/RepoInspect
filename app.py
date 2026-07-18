@@ -32,14 +32,21 @@ app = FastAPI(
 )
 
 # Enable CORS securely
+allowed_origins = [
+    "http://localhost:8080",
+    "http://localhost:8000",
+    "http://127.0.0.1:8080",
+    "http://127.0.0.1:8000",
+    "https://www.repoinspect.com",
+    "https://repoinspect.com"
+]
+extra_origins = os.getenv("ALLOWED_ORIGINS")
+if extra_origins:
+    allowed_origins.extend([o.strip() for o in extra_origins.split(",")])
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:8080",
-        "http://localhost:8000",
-        "http://127.0.0.1:8080",
-        "http://127.0.0.1:8000"
-    ],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
