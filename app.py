@@ -34,7 +34,12 @@ app = FastAPI(
 # Enable CORS securely
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, restrict this to specific domains
+    allow_origins=[
+        "http://localhost:8080",
+        "http://localhost:8000",
+        "http://127.0.0.1:8080",
+        "http://127.0.0.1:8000"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -42,37 +47,72 @@ app.add_middleware(
 
 # --- Configuration & Security Constants ---
 DATABASE_FILE = "repoinspect.db"
+DATABASE_URL = os.getenv("DATABASE_URL")
+if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
+    # Supabase sometimes provides 'postgres://', but Python's psycopg2 requires 'postgresql://'
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
 SECRET_KEY = os.getenv("JWT_SECRET", secrets.token_hex(32))
 TOKEN_EXPIRY_HOURS = 24
 PASSWORD_SALT_BYTES = 16
 PBKDF2_ITERATIONS = 100000
 
-# --- Database Initialization (SQLite) ---
+# --- Database Helper functions ---
+def get_db_connection():
+    if DATABASE_URL:
+        import psycopg2
+        return psycopg2.connect(DATABASE_URL)
+    else:
+        return sqlite3.connect(DATABASE_FILE)
+
+# --- Database Initialization ---
 def init_db():
-    conn = sqlite3.connect(DATABASE_FILE)
+    conn = get_db_connection()
     cursor = conn.cursor()
-    # Users table
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            email TEXT UNIQUE NOT NULL,
-            password_hash TEXT NOT NULL,
-            password_salt TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
-    # Scans log table
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS scans (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER,
-            repo_url TEXT NOT NULL,
-            score INTEGER,
-            status TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY(user_id) REFERENCES users(id)
-        )
-    """)
+    if DATABASE_URL:
+        # PostgreSQL schema (Supabase)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id SERIAL PRIMARY KEY,
+                email TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL,
+                password_salt TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS scans (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER,
+                repo_url TEXT NOT NULL,
+                score INTEGER,
+                status TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(user_id) REFERENCES users(id)
+            )
+        """)
+    else:
+        # SQLite schema
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                email TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL,
+                password_salt TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS scans (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
+                repo_url TEXT NOT NULL,
+                score INTEGER,
+                status TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(user_id) REFERENCES users(id)
+            )
+        """)
     conn.commit()
     conn.close()
 
@@ -162,29 +202,40 @@ class ScanRequestSchema(BaseModel):
 
 @app.post("/api/auth/register")
 def register(user: UserAuthSchema):
-    conn = sqlite3.connect(DATABASE_FILE)
+    conn = get_db_connection()
     cursor = conn.cursor()
     try:
         # Secure password hashing
         pwd_hash, salt_hex = hash_password(user.password)
-        cursor.execute(
-            "INSERT INTO users (email, password_hash, password_salt) VALUES (?, ?, ?)",
-            (user.email, pwd_hash, salt_hex)
-        )
+        if DATABASE_URL:
+            cursor.execute(
+                "INSERT INTO users (email, password_hash, password_salt) VALUES (%s, %s, %s) RETURNING id",
+                (user.email, pwd_hash, salt_hex)
+            )
+            user_id = cursor.fetchone()[0]
+        else:
+            cursor.execute(
+                "INSERT INTO users (email, password_hash, password_salt) VALUES (?, ?, ?)",
+                (user.email, pwd_hash, salt_hex)
+            )
+            user_id = cursor.lastrowid
         conn.commit()
-        user_id = cursor.lastrowid
         token = generate_session_token(user_id, user.email)
         return {"status": "success", "message": "User registered successfully", "token": token}
-    except sqlite3.IntegrityError:
-        raise HTTPException(status_code=400, detail="Email already registered")
+    except Exception as e:
+        err_msg = str(e).lower()
+        if "unique" in err_msg or "duplicate" in err_msg:
+            raise HTTPException(status_code=400, detail="Email already registered")
+        raise HTTPException(status_code=500, detail=f"Registration failure: {str(e)}")
     finally:
         conn.close()
 
 @app.post("/api/auth/login")
 def login(user: UserAuthSchema, response: Response):
-    conn = sqlite3.connect(DATABASE_FILE)
+    conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT id, password_hash, password_salt FROM users WHERE email = ?", (user.email,))
+    query = "SELECT id, password_hash, password_salt FROM users WHERE email = %s" if DATABASE_URL else "SELECT id, password_hash, password_salt FROM users WHERE email = ?"
+    cursor.execute(query, (user.email,))
     row = cursor.fetchone()
     conn.close()
     
@@ -228,16 +279,23 @@ def start_scan(req: ScanRequestSchema, request: Request):
         raise HTTPException(status_code=400, detail="Invalid GitHub repository URL format")
 
     try:
-        conn = sqlite3.connect(DATABASE_FILE)
+        conn = get_db_connection()
         cursor = conn.cursor()
         
         # Log scan start with optional user ID
-        cursor.execute(
-            "INSERT INTO scans (user_id, repo_url, status) VALUES (?, ?, ?)",
-            (user_id, url, "processing")
-        )
+        if DATABASE_URL:
+            cursor.execute(
+                "INSERT INTO scans (user_id, repo_url, status) VALUES (%s, %s, %s) RETURNING id",
+                (user_id, url, "processing")
+            )
+            scan_id = cursor.fetchone()[0]
+        else:
+            cursor.execute(
+                "INSERT INTO scans (user_id, repo_url, status) VALUES (?, ?, ?)",
+                (user_id, url, "processing")
+            )
+            scan_id = cursor.lastrowid
         conn.commit()
-        scan_id = cursor.lastrowid
         conn.close()
 
         # Build paths and run the CLI scanner generating a JSON report
@@ -248,12 +306,10 @@ def start_scan(req: ScanRequestSchema, request: Request):
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
         
         # Update scan table status
-        conn = sqlite3.connect(DATABASE_FILE)
+        conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute(
-            "UPDATE scans SET status = ?, score = ? WHERE id = ?",
-            ("completed", 91, scan_id)
-        )
+        query = "UPDATE scans SET status = %s, score = %s WHERE id = %s" if DATABASE_URL else "UPDATE scans SET status = ?, score = ? WHERE id = ?"
+        cursor.execute(query, ("completed", 91, scan_id))
         conn.commit()
         conn.close()
 

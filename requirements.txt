@@ -5,3 +5,7 @@ tree-sitter
 tree-sitter-languages
 chromadb
 tiktoken
+fastapi
+uvicorn
+psycopg2-binary
+pydantic<2.0.0
