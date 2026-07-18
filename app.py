@@ -138,6 +138,22 @@ def init_db():
                 last_scan_at TIMESTAMP
             )
         """)
+    # --- Live Database Migration ---
+    try:
+        if DATABASE_URL:
+            # PostgreSQL: check for ip_address column in scans
+            cursor.execute("SELECT column_name FROM information_schema.columns WHERE table_name='scans' AND column_name='ip_address'")
+            if not cursor.fetchone():
+                cursor.execute("ALTER TABLE scans ADD COLUMN ip_address TEXT")
+        else:
+            # SQLite: check for ip_address column in scans
+            cursor.execute("PRAGMA table_info(scans)")
+            columns = [col[1] for col in cursor.fetchall()]
+            if 'ip_address' not in columns:
+                cursor.execute("ALTER TABLE scans ADD COLUMN ip_address TEXT")
+    except Exception as migration_err:
+        logger.error("Database migration error: %s", migration_err)
+
     conn.commit()
     conn.close()
 
